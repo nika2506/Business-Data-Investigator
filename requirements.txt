@@ -1,2 +1,5 @@
-fastapi>=0.110,<1
-uvicorn>=0.29,<1
+fastapi==0.162.0
+uvicorn==0.54.0
+langchain-core==1.7.0
+langchain-ollama==1.1.0
+ollama==0.6.3
