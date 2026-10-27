@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Data Investigator</title>
+  <style>
+    :root { color-scheme: light; --ink: #202c2a; --muted: #6a7773; --line: #dce4dd; --green: #245b49; --paper: #f5f7f2; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--paper); color: var(--ink); font: 15px/1.55 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    button, textarea { font: inherit; }
+    button { cursor: pointer; }
+    button:focus-visible, textarea:focus-visible, input:focus-visible { outline: 3px solid #a2c9b6; outline-offset: 3px; }
+    .topbar { background: #fff; border-bottom: 1px solid var(--line); }
+    .topbar-inner { max-width: 1160px; margin: auto; padding: 19px 28px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+    .brand { display: flex; align-items: center; gap: 11px; font-weight: 750; letter-spacing: -.03em; }
+    .brand-mark { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 9px; background: var(--green); color: white; font-size: 17px; }
+    .top-note { color: var(--muted); font-size: 12px; font-weight: 650; letter-spacing: .04em; text-transform: uppercase; }
+    main { max-width: 1160px; margin: auto; padding: 62px 28px 90px; }
+    .intro { max-width: 700px; margin-bottom: 35px; }
+    .eyebrow { color: #648274; font-size: 11px; font-weight: 800; letter-spacing: .15em; text-transform: uppercase; }
+    h1 { margin: 10px 0 12px; font-family: Georgia, serif; font-size: clamp(36px, 5vw, 54px); font-weight: 400; line-height: 1.08; letter-spacing: -.045em; }
+    .intro p { color: var(--muted); font-size: 16px; margin: 0; max-width: 560px; }
+    .layout { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 24px; align-items: start; }
+    .card { background: #fff; border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 8px 30px rgba(35, 62, 48, .04); }
+    .composer { padding: 25px; }
+    .section-label { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 13px; font-weight: 750; }
+    .section-label span { color: var(--muted); font-size: 12px; font-weight: 500; }
+    textarea { display: block; width: 100%; min-height: 130px; resize: vertical; border: 1px solid #d4ded6; border-radius: 9px; padding: 14px; color: var(--ink); background: #fbfcfa; }
+    textarea::placeholder { color: #9aa7a0; }
+    .form-bottom { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-top: 17px; }
+    .followup { display: flex; align-items: center; gap: 8px; color: #53635b; font-size: 13px; }
+    .followup input { accent-color: var(--green); width: 16px; height: 16px; }
+    .primary, .secondary { border-radius: 8px; padding: 10px 16px; font-weight: 700; font-size: 13px; }
+    .primary { background: var(--green); color: #fff; border: 1px solid var(--green); }
+    .primary:hover:not(:disabled) { background: #194838; }
+    .secondary { background: #fff; color: var(--green); border: 1px solid #cbd9ce; }
+    .secondary:hover { background: #f3f8f4; }
+    button:disabled { opacity: .6; cursor: wait; }
+    .sidebar { padding: 23px; background: #eaf0e8; border: 1px solid #dce7dc; border-radius: 14px; }
+    .sidebar h2 { font-family: Georgia, serif; font-size: 20px; font-weight: 400; margin: 8px 0 12px; }
+    .sidebar p { color: #60716a; font-size: 13px; margin: 0 0 17px; }
+    .steps { border-top: 1px solid #d2ded2; padding-top: 14px; display: grid; gap: 13px; }
+    .step { display: flex; gap: 10px; color: #53665c; font-size: 13px; }
+    .step b { color: #789183; font-size: 11px; }
+    .notice { margin-top: 16px; padding: 12px 14px; border-radius: 8px; background: #fff2ed; color: #913f2c; font-size: 13px; overflow-wrap: anywhere; }
+    .loading { margin-top: 16px; color: var(--green); font-size: 13px; }
+    .results { margin-top: 28px; }
+    .results-heading { display: flex; align-items: center; justify-content: space-between; gap: 15px; margin-bottom: 14px; }
+    .results-heading h2 { font-family: Georgia, serif; font-size: 28px; font-weight: 400; margin: 0; letter-spacing: -.025em; }
+    .report { padding: 26px; }
+    .report-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 15px; border-bottom: 1px solid var(--line); padding-bottom: 20px; }
+    .report-top h3 { font-size: 18px; line-height: 1.4; margin: 7px 0 0; overflow-wrap: anywhere; }
+    .badge { flex-shrink: 0; border-radius: 50px; background: #e9f3eb; color: #346348; padding: 5px 10px; font-size: 11px; font-weight: 750; overflow-wrap: anywhere; max-width: 40%; }
+    .block { margin-top: 24px; }
+    .block h4 { margin: 0 0 9px; font-size: 12px; text-transform: uppercase; letter-spacing: .09em; color: #6d8075; }
+    .explanation { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; }
+    .assumptions { margin: 0; padding-left: 20px; color: #53635b; }
+    .query { border: 1px solid var(--line); border-radius: 9px; overflow: hidden; margin-top: 12px; }
+    .query-title { background: #f7f9f6; padding: 10px 14px; font-size: 12px; font-weight: 750; }
+    pre { margin: 0; padding: 14px; background: #263a33; color: #e3f1e6; font: 12px/1.6 ui-monospace, SFMono-Regular, Consolas, monospace; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; }
+    th, td { border-top: 1px solid #e9eeea; padding: 9px 14px; vertical-align: top; white-space: nowrap; }
+    th { color: #64756b; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+    .query-message { margin: 0; padding: 12px 14px; color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
+    .query-error { color: #913f2c; background: #fff5f1; }
+    [hidden] { display: none !important; }
+    @media (max-width: 760px) { main { padding: 42px 18px 60px; } .topbar-inner { padding: 16px 18px; } .top-note { display: none; } .layout { grid-template-columns: 1fr; } .sidebar { order: 2; } .composer, .report { padding: 20px; } }
+  </style>
+</head>
+<body>
+  <header class="topbar"><div class="topbar-inner"><div class="brand"><span class="brand-mark" aria-hidden="true">&#8599;</span> Data Investigator</div><div class="top-note">A clearer view of your data</div></div></header>
+  <main>
+    <div class="intro"><div class="eyebrow">Your analytical workspace</div><h1>Ask a better question.</h1><p>Turn a business question into an investigation, with the evidence and queries behind the answer.</p></div>
+    <div class="layout">
+      <div>
+        <form class="card composer" id="investigation-form">
+          <label class="section-label" for="question">Your question <span>Be as specific as you can</span></label>
+          <textarea id="question" name="question" required placeholder="For example: What changed in sales over the last month?"></textarea>
+          <div class="form-bottom"><label class="followup"><input id="offline" type="checkbox" checked> Offline fixed summary (no model)</label><label class="followup" id="followup-label" hidden><input id="followup" type="checkbox"> Use previous report as context</label><span id="first-hint" class="followup">Ask in plain language.</span><button class="primary" id="submit" type="submit">Investigate <span aria-hidden="true">&#8599;</span></button></div>
+          <div class="loading" id="loading" role="status" hidden>Investigating your question. This may take a moment...</div>
+          <div class="notice" id="error" role="alert" hidden></div>
+        </form>
+        <section class="results" id="results" aria-labelledby="results-title" hidden>
+          <div class="results-heading"><h2 id="results-title">Investigation report</h2><button class="secondary" id="export" type="button">Download JSON</button></div>
+          <article class="card report" id="report"></article>
+        </section>
+      </div>
+      <aside class="sidebar"><div class="eyebrow">How it works</div><h2>From question to clarity.</h2><p>Explore the answer and see the data used to support it.</p><div class="steps"><div class="step"><b>01</b><span>Ask a business question</span></div><div class="step"><b>02</b><span>Review the explanation and evidence</span></div><div class="step"><b>03</b><span>Follow up or export your report</span></div></div></aside>
+    </div>
+  </main>
+  <script>
+    const form = document.getElementById('investigation-form');
+    const question = document.getElementById('question');
+    const followup = document.getElementById('followup');
+    const reportElement = document.getElementById('report');
+    const errorElement = document.getElementById('error');
+    let previousReport = null;
+
+    function element(tag, text, className) {
+      const node = document.createElement(tag);
+      if (text != null) node.textContent = text;
+      if (className) node.className = className;
+      return node;
+    }
+
+    function displayValue(value) {
+      if (value == null) return 'NULL';
+      return typeof value === 'object' ? JSON.stringify(value) : String(value);
+    }
+
+    function renderReport(report) {
+      reportElement.replaceChildren();
+      const top = element('div', null, 'report-top');
+      const title = element('div');
+      title.append(element('div', 'Question', 'eyebrow'), element('h3', report.question || 'Investigation'));
+      top.append(title, element('span', displayValue(report.status || 'Unknown'), 'badge'));
+      reportElement.append(top);
+
+      const explanation = element('section', null, 'block');
+      explanation.append(element('h4', 'Explanation'), element('p', report.explanation || 'No explanation provided.', 'explanation'));
+      reportElement.append(explanation);
+
+      if (Array.isArray(report.assumptions) && report.assumptions.length) {
+        const section = element('section', null, 'block');
+        const list = element('ul', null, 'assumptions');
+        report.assumptions.forEach(item => list.append(element('li', displayValue(item))));
+        section.append(element('h4', 'Assumptions'), list);
+        reportElement.append(section);
+      }
+
+      const section = element('section', null, 'block');
+      section.append(element('h4', 'Queries & results'));
+      const queries = Array.isArray(report.queries) ? report.queries : [];
+      if (!queries.length) section.append(element('p', 'No queries were included in this report.', 'query-message'));
+      queries.forEach((query, index) => {
+        const box = element('div', null, 'query');
+        box.append(element('div', `Query ${index + 1}`, 'query-title'));
+        if (query.sql) box.append(element('pre', query.sql));
+        if (query.error) box.append(element('p', displayValue(query.error), 'query-message query-error'));
+        const columns = Array.isArray(query.columns) ? query.columns : [];
+        const rows = Array.isArray(query.rows) ? query.rows : [];
+        if (columns.length && rows.length) {
+          const wrap = element('div', null, 'table-wrap');
+          const table = element('table');
+          const head = element('thead');
+          const header = element('tr');
+          columns.forEach(column => header.append(element('th', displayValue(column))));
+          head.append(header);
+          const body = element('tbody');
+          rows.forEach(row => {
+            const tr = element('tr');
+            columns.forEach((column, i) => tr.append(element('td', displayValue(Array.isArray(row) ? row[i] : row && row[column]))));
+            body.append(tr);
+          });
+          table.append(head, body);
+          wrap.append(table);
+          box.append(wrap);
+        } else if (!query.error) {
+          box.append(element('p', 'No rows returned.', 'query-message'));
+        }
+        section.append(box);
+      });
+      reportElement.append(section);
+    }
+
+    form.addEventListener('submit', async event => {
+      event.preventDefault();
+      const text = question.value.trim();
+      if (!text) { question.focus(); return; }
+      const payload = { question: text, mode: document.getElementById('offline').checked ? 'offline' : 'model' };
+      if (followup.checked && previousReport) payload.investigation_id = previousReport.investigation_id;
+      const submit = document.getElementById('submit');
+      submit.disabled = true;
+      document.getElementById('loading').hidden = false;
+      errorElement.hidden = true;
+      try {
+        const response = await fetch('/investigations', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const data = await response.json().catch(() => null);
+        if (!response.ok) {
+          const detail = data && (data.detail || data.message);
+          throw new Error(detail ? displayValue(detail) : `Request failed (HTTP ${response.status}).`);
+        }
+        if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('The server returned an invalid report.');
+        const turn = data.turn;
+        renderReport({ question: turn.question, explanation: turn.answer + (turn.error ? '\nError: ' + turn.error : ''), status: turn.error ? 'Incomplete' : turn.mode === 'offline' ? 'Offline summary' : 'Model answer (unverified)', assumptions: ['UTC dates; start inclusive and end exclusive.', 'Amounts are integer USD cents; refunds use refund date and original customer segment.', 'Model-generated SQL and explanations can be incorrect; inspect the evidence.'], queries: turn.attempts.map(item => ({sql: item.sql, ...item.result})) });
+        previousReport = data;
+        document.getElementById('results').hidden = false;
+        document.getElementById('followup-label').hidden = false;
+        document.getElementById('first-hint').hidden = true;
+        followup.checked = true;
+      } catch (error) {
+        errorElement.textContent = error.message || 'Unable to reach the server. Please try again.';
+        errorElement.hidden = false;
+      } finally {
+        submit.disabled = false;
+        document.getElementById('loading').hidden = true;
+      }
+    });
+
+    document.getElementById('export').addEventListener('click', () => {
+      if (!previousReport) return;
+      const link = document.createElement('a');
+      link.href = `/investigations/${encodeURIComponent(previousReport.investigation_id)}/export`;
+      link.click();
+    });
+  </script>
+</body>
+</html>
