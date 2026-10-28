@@ -32,6 +32,7 @@ class InvestigatorAgent:
             [query_database],
             parallel_tool_calls=False,
         )
+
     def offline_investigate(self, question: str) -> tuple[str, list]:
         MONTHLY_SQL = """WITH gross AS (SELECT substr(order_date, 1, 7) AS month, sum (amount_cents) AS gross_cents \
                          FROM orders \
@@ -101,6 +102,8 @@ class InvestigatorAgent:
         messages.append(HumanMessage(content=question))
 
         calls = 0
+        successful_queries = 0
+        follow_up_attempted = False
 
         for _ in range(10):
             model = (
@@ -117,28 +120,27 @@ class InvestigatorAgent:
             if not tool_calls:
                 messages.append(response)
 
-                if calls < 2 and calls < MAX_TOOL_CALLS:
-                    messages.append(HumanMessage(
-                        content=(
-                            "The investigation is incomplete. "
-                            "Execute a follow-up SQL query based on "
-                            "the previous result."
+                if not follow_up_attempted and calls < MAX_TOOL_CALLS:
+                    if calls == 0:
+                        instruction = (
+                            "Execute an initial SQL query to investigate "
+                            "the user's question."
                         )
-                    ))
+                    elif successful_queries == 0:
+                        instruction = (
+                            "The previous SQL query failed. "
+                            "Correct the SQL and try again."
+                        )
+                    else:
+                        instruction = (
+                            "Analyze the previous successful SQL result "
+                            "and execute a follow-up SQL query based on it."
+                        )
+                    messages.append(HumanMessage(content=instruction))
                     continue
 
-                # messages.append(HumanMessage(
-                #     content=(
-                #         "Now provide the FINAL answer to the original question "
-                #         "using the SQL results already available. "
-                #         "If comparing net sales, calculate net sales as gross sales "
-                #         "minus refunds for each period, then calculate the absolute "
-                #         "and percentage change. Explain what caused the change. "
-                #         "Do not describe what you plan to calculate. "
-                #         "Perform the calculations and give the final answer. "
-                #         "Do not request any more SQL queries."
-                #     )
-                # ))
+                if not follow_up_attempted:
+                    return "Incomplete: no follow-up SQL query was attempted."
 
                 messages.append(HumanMessage(
                     content=(FINAL_ANSWER_INSTRUCTION)))
@@ -160,6 +162,10 @@ class InvestigatorAgent:
             call = tool_calls[0]
             calls += 1
 
+            # A follow-up is an SQL attempt made after a successful result.
+            if successful_queries > 0:
+                follow_up_attempted = True
+
             sql = call["args"].get("sql")
 
             if call["name"] != "query_database":
@@ -174,6 +180,9 @@ class InvestigatorAgent:
                 "result": result,
             })
 
+            if "error" not in result:
+                successful_queries += 1
+
             messages.append(response)
             messages.append(ToolMessage(
                 content=json.dumps(result),
@@ -181,11 +190,11 @@ class InvestigatorAgent:
                 name="query_database",
             ))
 
-            if calls == 1:
+            if successful_queries == 1 and not follow_up_attempted and calls < MAX_TOOL_CALLS:
                 messages.append(HumanMessage(
                     content=(
-                        "Analyze the first query result and "
-                        "choose a follow-up SQL query."
+                        "Analyze the successful SQL result and "
+                        "choose a follow-up SQL query based on it."
                     )
                 ))
 
