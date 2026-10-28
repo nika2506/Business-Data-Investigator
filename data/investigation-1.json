@@ -1,0 +1,281 @@
+{
+  "investigation_id": "7e094684-4263-4e4d-90eb-3fecd1936223",
+  "turns": [
+    {
+      "question": "Compare net sales in August 2026 with September 2026",
+      "mode": "model",
+      "answer": "In August 2026, net sales were 15,000 cents ($150.00), calculated as gross sales of 16,000 cents minus refunds of 1,000 cents.  \nIn September 2026, net sales were 12,300 cents ($123.00), calculated as gross sales of 19,000 cents minus refunds of 6,700 cents.\n\nThe absolute change in net sales from August to September 2026 is a decrease of 2,700 cents ($27.00), which is a 18% decline ((-2,700 / 15,000) * 100).\n\nThis decline in net sales was caused by both components:\n- Gross sales increased by 3,000 cents ($30.00), a 19% increase.\n- Refunds increased significantly by 5,700 cents ($57.00), a 570% increase.\n\nTherefore, despite higher gross sales in September, the much larger increase in refunds led to an overall decrease in net sales compared to August 2026.",
+      "model_answer_unverified": "In August 2026, net sales were 15,000 cents ($150.00), calculated as gross sales of 16,000 cents minus refunds of 1,000 cents.  \nIn September 2026, net sales were 12,300 cents ($123.00), calculated as gross sales of 19,000 cents minus refunds of 6,700 cents.\n\nThe absolute change in net sales from August to September 2026 is a decrease of 2,700 cents ($27.00), which is a 18% decline ((-2,700 / 15,000) * 100).\n\nThis decline in net sales was caused by both components:\n- Gross sales increased by 3,000 cents ($30.00), a 19% increase.\n- Refunds increased significantly by 5,700 cents ($57.00), a 570% increase.\n\nTherefore, despite higher gross sales in September, the much larger increase in refunds led to an overall decrease in net sales compared to August 2026.",
+      "attempts": [
+        {
+          "sql": "-- Calculate gross sales for August and September 2026\nSELECT\n  STRFTIME('%Y-%m', order_date) AS month,\n  SUM(amount_cents) AS gross_sales_cents\nFROM orders\nWHERE order_date >= '2026-08-01' AND order_date < '2026-10-01'\nGROUP BY month\nORDER BY month;",
+          "result": {
+            "columns": [
+              "month",
+              "gross_sales_cents"
+            ],
+            "rows": [
+              [
+                "2026-08",
+                16000
+              ],
+              [
+                "2026-09",
+                19000
+              ]
+            ],
+            "truncated": false,
+            "cells_truncated": false
+          }
+        },
+        {
+          "sql": "-- Calculate refunds for August and September 2026\nSELECT\n  STRFTIME('%Y-%m', refund_date) AS month,\n  SUM(amount_cents) AS refunds_cents\nFROM refunds\nWHERE refund_date >= '2026-08-01' AND refund_date < '2026-10-01'\nGROUP BY month\nORDER BY month;",
+          "result": {
+            "columns": [
+              "month",
+              "refunds_cents"
+            ],
+            "rows": [
+              [
+                "2026-08",
+                1000
+              ],
+              [
+                "2026-09",
+                6700
+              ]
+            ],
+            "truncated": false,
+            "cells_truncated": false
+          }
+        }
+      ],
+      "error": null,
+      "model_responses": [
+        {
+          "content": "",
+          "additional_kwargs": {
+            "refusal": null
+          },
+          "response_metadata": {
+            "token_usage": {
+              "completion_tokens": 91,
+              "prompt_tokens": 392,
+              "total_tokens": 483,
+              "completion_tokens_details": {
+                "accepted_prediction_tokens": 0,
+                "audio_tokens": 0,
+                "reasoning_tokens": 0,
+                "rejected_prediction_tokens": 0
+              },
+              "prompt_tokens_details": {
+                "audio_tokens": 0,
+                "cache_write_tokens": null,
+                "cached_tokens": 0
+              }
+            },
+            "model_provider": "openai",
+            "model_name": "gpt-4.1-mini-2025-04-14",
+            "system_fingerprint": "fp_a39d4f1b74",
+            "id": "chatcmpl-Ee0Y9e5W39YvDYw2k5JwTipcK79Jy",
+            "service_tier": "default",
+            "finish_reason": "tool_calls",
+            "logprobs": null
+          },
+          "type": "ai",
+          "name": null,
+          "id": "lc_run--01a18348-94d6-75e6-95b2-79bdb9dd91b3-0",
+          "tool_calls": [
+            {
+              "name": "query_database",
+              "args": {
+                "sql": "-- Calculate gross sales for August and September 2026\nSELECT\n  STRFTIME('%Y-%m', order_date) AS month,\n  SUM(amount_cents) AS gross_sales_cents\nFROM orders\nWHERE order_date >= '2026-08-01' AND order_date < '2026-10-01'\nGROUP BY month\nORDER BY month;"
+              },
+              "id": "call_j66fAbA3Xn7cazJQug4GOBL8",
+              "type": "tool_call"
+            }
+          ],
+          "invalid_tool_calls": [],
+          "usage_metadata": {
+            "input_tokens": 392,
+            "output_tokens": 91,
+            "total_tokens": 483,
+            "input_token_details": {
+              "audio": 0,
+              "cache_read": 0
+            },
+            "output_token_details": {
+              "audio": 0,
+              "reasoning": 0
+            }
+          }
+        },
+        {
+          "content": "The gross sales for August 2026 are 16,000 cents ($160.00) and for September 2026 are 19,000 cents ($190.00). To complete the net sales comparison, I need to find the refunds for these two months. Since refunds are attributed to the refund_date, I will calculate the total refunds for August and September 2026 next.",
+          "additional_kwargs": {
+            "refusal": null
+          },
+          "response_metadata": {
+            "token_usage": {
+              "completion_tokens": 168,
+              "prompt_tokens": 559,
+              "total_tokens": 727,
+              "completion_tokens_details": {
+                "accepted_prediction_tokens": 0,
+                "audio_tokens": 0,
+                "reasoning_tokens": 0,
+                "rejected_prediction_tokens": 0
+              },
+              "prompt_tokens_details": {
+                "audio_tokens": 0,
+                "cache_write_tokens": null,
+                "cached_tokens": 0
+              }
+            },
+            "model_provider": "openai",
+            "model_name": "gpt-4.1-mini-2025-04-14",
+            "system_fingerprint": "fp_a39d4f1b74",
+            "id": "chatcmpl-Ee0YCHsCfp7BUqkeVgTRVwSq6NaqD",
+            "service_tier": "default",
+            "finish_reason": "tool_calls",
+            "logprobs": null
+          },
+          "type": "ai",
+          "name": null,
+          "id": "lc_run--01a18348-a135-72f5-8bd3-c23440482abf-0",
+          "tool_calls": [
+            {
+              "name": "query_database",
+              "args": {
+                "sql": "-- Calculate refunds for August and September 2026\nSELECT\n  STRFTIME('%Y-%m', refund_date) AS month,\n  SUM(amount_cents) AS refunds_cents\nFROM refunds\nWHERE refund_date >= '2026-08-01' AND refund_date < '2026-10-01'\nGROUP BY month\nORDER BY month;"
+              },
+              "id": "call_xh1qlgZsn5XuBkwc3twEDoI8",
+              "type": "tool_call"
+            }
+          ],
+          "invalid_tool_calls": [],
+          "usage_metadata": {
+            "input_tokens": 559,
+            "output_tokens": 168,
+            "total_tokens": 727,
+            "input_token_details": {
+              "audio": 0,
+              "cache_read": 0
+            },
+            "output_token_details": {
+              "audio": 0,
+              "reasoning": 0
+            }
+          }
+        },
+        {
+          "content": "The refunds for August 2026 are 1,000 cents ($10.00) and for September 2026 are 6,700 cents ($67.00).\n\nNow, let's calculate the net sales for each month:\n- August 2026 net sales = 16,000 - 1,000 = 15,000 cents ($150.00)\n- September 2026 net sales = 19,000 - 6,700 = 12,300 cents ($123.00)\n\nSeptember 2026 had higher gross sales but also significantly higher refunds, resulting in lower net sales compared to August 2026. Would you like me to analyze the customer segments or other details contributing to these changes?",
+          "additional_kwargs": {
+            "refusal": null
+          },
+          "response_metadata": {
+            "token_usage": {
+              "completion_tokens": 146,
+              "prompt_tokens": 786,
+              "total_tokens": 932,
+              "completion_tokens_details": {
+                "accepted_prediction_tokens": 0,
+                "audio_tokens": 0,
+                "reasoning_tokens": 0,
+                "rejected_prediction_tokens": 0
+              },
+              "prompt_tokens_details": {
+                "audio_tokens": 0,
+                "cache_write_tokens": null,
+                "cached_tokens": 0
+              }
+            },
+            "model_provider": "openai",
+            "model_name": "gpt-4.1-mini-2025-04-14",
+            "system_fingerprint": "fp_a39d4f1b74",
+            "id": "chatcmpl-Ee0YF2M6I7LBO6vqzMV5Tg5w9VcF4",
+            "service_tier": "default",
+            "finish_reason": "stop",
+            "logprobs": null
+          },
+          "type": "ai",
+          "name": null,
+          "id": "lc_run--01a18348-af0c-7079-8985-8d83779806a8-0",
+          "tool_calls": [],
+          "invalid_tool_calls": [],
+          "usage_metadata": {
+            "input_tokens": 786,
+            "output_tokens": 146,
+            "total_tokens": 932,
+            "input_token_details": {
+              "audio": 0,
+              "cache_read": 0
+            },
+            "output_token_details": {
+              "audio": 0,
+              "reasoning": 0
+            }
+          }
+        },
+        {
+          "content": "In August 2026, net sales were 15,000 cents ($150.00), calculated as gross sales of 16,000 cents minus refunds of 1,000 cents.  \nIn September 2026, net sales were 12,300 cents ($123.00), calculated as gross sales of 19,000 cents minus refunds of 6,700 cents.\n\nThe absolute change in net sales from August to September 2026 is a decrease of 2,700 cents ($27.00), which is a 18% decline ((-2,700 / 15,000) * 100).\n\nThis decline in net sales was caused by both components:\n- Gross sales increased by 3,000 cents ($30.00), a 19% increase.\n- Refunds increased significantly by 5,700 cents ($57.00), a 570% increase.\n\nTherefore, despite higher gross sales in September, the much larger increase in refunds led to an overall decrease in net sales compared to August 2026.",
+          "additional_kwargs": {
+            "refusal": null
+          },
+          "response_metadata": {
+            "token_usage": {
+              "completion_tokens": 210,
+              "prompt_tokens": 1011,
+              "total_tokens": 1221,
+              "completion_tokens_details": {
+                "accepted_prediction_tokens": 0,
+                "audio_tokens": 0,
+                "reasoning_tokens": 0,
+                "rejected_prediction_tokens": 0
+              },
+              "prompt_tokens_details": {
+                "audio_tokens": 0,
+                "cache_write_tokens": null,
+                "cached_tokens": 0
+              }
+            },
+            "model_provider": "openai",
+            "model_name": "gpt-4.1-mini-2025-04-14",
+            "system_fingerprint": "fp_a39d4f1b74",
+            "id": "chatcmpl-Ee0YH2Q7s15m0BUeNuSviSag60ezA",
+            "service_tier": "default",
+            "finish_reason": "stop",
+            "logprobs": null
+          },
+          "type": "ai",
+          "name": null,
+          "id": "lc_run--01a18348-b81e-7330-ac6c-036b77b57ffc-0",
+          "tool_calls": [],
+          "invalid_tool_calls": [],
+          "usage_metadata": {
+            "input_tokens": 1011,
+            "output_tokens": 210,
+            "total_tokens": 1221,
+            "input_token_details": {
+              "audio": 0,
+              "cache_read": 0
+            },
+            "output_token_details": {
+              "audio": 0,
+              "reasoning": 0
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "in_progress": false,
+  "definitions": "\nYou are a business data investigator. Answer questions using\nSQL evidence from the database.\n\nBUSINESS RULES:\n- Gross sales: sum order amounts by order_date.\n- Refunds: sum refund amounts by refund_date.\n- Net sales = gross sales - refunds.\n- Amounts are integer USD cents.\n- Use UTC and half-open date ranges [start, end).\n- One order may have multiple refunds. Aggregate orders and\n  refunds separately to avoid duplicating gross sales.\n- Attribute refunds to the customer segment of the original order.\n- Refund reasons are not available in the database.\n\nINVESTIGATION:\n- Execute one SQL query at a time and use its result to\n  decide what to investigate next.\n- For net sales, always obtain evidence for both gross sales\n  and refunds, even if one of them is zero or has no records.\n  No orders in a period does not imply no refunds in that period.\n- For period comparisons, calculate relevant changes and\n  explain which components contributed to them.\n- Only investigate additional metrics when relevant to\n  the user's question.\n\nEVIDENCE:\n- Never invent or assume values not supported by SQL results.\n- Do not interpret missing rows as zero without justification.\n- If evidence is missing, query the database within the\n  available budget or state the limitation.\n- Answer the original question directly, using verified evidence.\n",
+  "configuration": {
+    "provider": "openai",
+    "model": "gpt-4.1-mini",
+    "query_limit": 6,
+    "row_limit": 100,
+    "query_seconds": 2
+  }
+}

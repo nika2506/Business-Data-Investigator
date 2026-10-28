@@ -67,6 +67,9 @@
     .query-error { color: #913f2c; background: #fff5f1; }
     [hidden] { display: none !important; }
     @media (max-width: 760px) { main { padding: 42px 18px 60px; } .topbar-inner { padding: 16px 18px; } .top-note { display: none; } .layout { grid-template-columns: 1fr; } .sidebar { order: 2; } .composer, .report { padding: 20px; } }
+    .replay-panel { margin-top: 20px; }
+    .replay-panel input[type="file"] { display: block; max-width: 100%; margin: 10px 0 14px; }
+    .replay-panel .hint { color: var(--muted); font-size: 13px; margin: 0 0 12px; }
   </style>
 </head>
 <body>
@@ -82,6 +85,15 @@
           <div class="loading" id="loading" role="status" hidden>Investigating your question. This may take a moment...</div>
           <div class="notice" id="error" role="alert" hidden></div>
         </form>
+        <section class="card composer replay-panel" aria-labelledby="replay-title">
+          <div class="section-label" id="replay-title">Replay saved investigation</div>
+          <p class="hint">Choose a JSON export from a real model investigation. Recorded SQL will run again without an OpenAI API key.</p>
+          <label for="replay-file">Investigation JSON export</label>
+          <input type="file" id="replay-file" accept=".json,application/json">
+          <button class="secondary" id="replay-submit" type="button">Run replay</button>
+          <div class="loading" id="replay-loading" hidden>Checking saved SQL evidence...</div>
+          <div class="notice" id="replay-error" role="alert" hidden></div>
+        </section>
         <section class="results" id="results" aria-labelledby="results-title" hidden>
           <div class="results-heading"><h2 id="results-title">Investigation report</h2><button class="secondary" id="export" type="button">Download JSON</button></div>
           <article class="card report" id="report"></article>
@@ -165,6 +177,73 @@
       reportElement.append(section);
     }
 
+    function showResult(data) {
+      const turn = data.turn;
+      const isReplay = turn.mode === 'replay';
+      const status = isReplay
+        ? (turn.replay_verification?.matched ? 'Replay: SQL matched' : 'Replay: mismatch')
+        : turn.error ? 'Incomplete'
+        : turn.mode === 'offline' ? 'Offline summary' : 'Model answer (unverified)';
+      const assumptions = [
+        'UTC dates; start inclusive and end exclusive.',
+        'Amounts are integer USD cents; refunds use refund date and original customer segment.',
+        'Model-generated SQL and explanations can be incorrect; inspect the evidence.'
+      ];
+      if (isReplay) assumptions.unshift(
+        'This is the saved model answer; replay verifies SQL results, not the explanation.',
+        'No new LLM calls were made.'
+      );
+      renderReport({
+        question: turn.question,
+        explanation: turn.answer + (turn.error ? '\nError: ' + turn.error : ''),
+        status,
+        assumptions,
+        queries: turn.attempts.map(item => ({ sql: item.sql, ...item.result }))
+      });
+      previousReport = data;
+      document.getElementById('results').hidden = false;
+      // A replay is not a continuation of the original model conversation.
+      document.getElementById('followup-label').hidden = isReplay;
+      document.getElementById('first-hint').hidden = !isReplay;
+      followup.checked = !isReplay;
+    }
+
+    document.getElementById('replay-submit').addEventListener('click', async () => {
+      const file = document.getElementById('replay-file').files[0];
+      const button = document.getElementById('replay-submit');
+      const loading = document.getElementById('replay-loading');
+      const errorBox = document.getElementById('replay-error');
+      errorBox.hidden = true;
+      if (!file) {
+        errorBox.textContent = 'Choose an investigation JSON export.';
+        errorBox.hidden = false;
+        return;
+      }
+      button.disabled = true;
+      loading.hidden = false;
+      try {
+        const exportData = JSON.parse(await file.text());
+        if (!Array.isArray(exportData.turns)) throw new Error('Invalid investigation export.');
+        const turnIndex = exportData.turns.map(turn => turn.mode).lastIndexOf('model');
+        if (turnIndex < 0) throw new Error('No recorded model turn in this export.');
+        const response = await fetch('/investigations/replay', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ export_data: exportData, turn_index: turnIndex })
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(displayValue(data.detail || `HTTP ${response.status}`));
+        showResult(data);
+        document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+      } catch (error) {
+        errorBox.textContent = error.message || 'Replay failed.';
+        errorBox.hidden = false;
+      } finally {
+        button.disabled = false;
+        loading.hidden = true;
+      }
+    });
+
     form.addEventListener('submit', async event => {
       event.preventDefault();
       const text = question.value.trim();
@@ -183,13 +262,7 @@
           throw new Error(detail ? displayValue(detail) : `Request failed (HTTP ${response.status}).`);
         }
         if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('The server returned an invalid report.');
-        const turn = data.turn;
-        renderReport({ question: turn.question, explanation: turn.answer + (turn.error ? '\nError: ' + turn.error : ''), status: turn.error ? 'Incomplete' : turn.mode === 'offline' ? 'Offline summary' : 'Model answer (unverified)', assumptions: ['UTC dates; start inclusive and end exclusive.', 'Amounts are integer USD cents; refunds use refund date and original customer segment.', 'Model-generated SQL and explanations can be incorrect; inspect the evidence.'], queries: turn.attempts.map(item => ({sql: item.sql, ...item.result})) });
-        previousReport = data;
-        document.getElementById('results').hidden = false;
-        document.getElementById('followup-label').hidden = false;
-        document.getElementById('first-hint').hidden = true;
-        followup.checked = true;
+        showResult(data);
       } catch (error) {
         errorElement.textContent = error.message || 'Unable to reach the server. Please try again.';
         errorElement.hidden = false;

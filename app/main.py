@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import Response, FileResponse
 from pathlib import Path
+from pydantic import BaseModel
 import uuid
 import threading
 import os
@@ -63,6 +64,52 @@ def investigate(request: InvestigationRequest):
         investigation["turns"].append(turn)
         investigation["busy"] = False
         return {"investigation_id": investigation["id"], "turn": turn}
+
+
+class ReplayRequest(BaseModel):
+    export_data: dict
+    turn_index: int = -1
+
+
+@app.post("/investigations/replay")
+def replay_investigation(request: ReplayRequest):
+    """Replay one recorded model turn from a downloaded investigation JSON."""
+    turns = request.export_data.get("turns")
+    if not isinstance(turns, list) or not turns:
+        raise HTTPException(422, "Export must contain a nonempty turns list.")
+    try:
+        saved_turn = turns[request.turn_index]
+    except (IndexError, TypeError):
+        raise HTTPException(422, "Invalid turn index.")
+    if not isinstance(saved_turn, dict) or saved_turn.get("mode") != "model":
+        raise HTTPException(422, "Select a recorded model-mode turn.")
+
+    attempts = []
+    try:
+        answer, verification = agent.replay_investigate(saved_turn, attempts)
+    except (ValueError, TypeError) as exc:
+        raise HTTPException(422, str(exc)) from exc
+
+    error = None
+    if not verification["matched"]:
+        error = ("Replay mismatch: SQL results differ from recorded evidence "
+                 f"for queries {verification['mismatch_queries']}.")
+    turn = {
+        "question": saved_turn.get("question", "Recorded investigation"),
+        "mode": "replay",
+        "answer": answer,
+        "model_answer_unverified": answer,
+        "attempts": attempts,
+        "error": error,
+        "model_responses": saved_turn.get("model_responses", []),
+        "replay_verification": verification,
+    }
+    investigation_id = str(uuid.uuid4())
+    with lock:
+        investigations[investigation_id] = {
+            "id": investigation_id, "turns": [turn], "busy": False
+        }
+    return {"investigation_id": investigation_id, "turn": turn}
 
 
 @app.get("/investigations/{investigation_id}")

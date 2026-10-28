@@ -1,0 +1,287 @@
+{
+  "investigation_id": "6c889b8e-cd12-4308-9d1a-709c73ef931b",
+  "turns": [
+    {
+      "question": "Which orders have multiple refunds and how much was refunded for each?",
+      "mode": "model",
+      "answer": "The orders that have multiple refunds and their refund amounts are:\n\n- Order O3: This order had 2 refunds totaling 3000 cents. The original order amount was 5000 cents. The customer segment for this order is 'small'.\n- Order O5: This order had 2 refunds totaling 2000 cents. The original order amount was 4000 cents. The customer segment for this order is also 'small'.\n\nIn both cases, the refunds represent a substantial portion of the original order amounts, indicating significant refund activity for these orders within the 'small' customer segment.",
+      "model_answer_unverified": "The orders that have multiple refunds and their refund amounts are:\n\n- Order O3: This order had 2 refunds totaling 3000 cents. The original order amount was 5000 cents. The customer segment for this order is 'small'.\n- Order O5: This order had 2 refunds totaling 2000 cents. The original order amount was 4000 cents. The customer segment for this order is also 'small'.\n\nIn both cases, the refunds represent a substantial portion of the original order amounts, indicating significant refund activity for these orders within the 'small' customer segment.",
+      "attempts": [
+        {
+          "sql": "SELECT order_id, COUNT(refund_id) AS refund_count, SUM(amount_cents) AS total_refunded_cents\nFROM refunds\nGROUP BY order_id\nHAVING COUNT(refund_id) > 1;",
+          "result": {
+            "columns": [
+              "order_id",
+              "refund_count",
+              "total_refunded_cents"
+            ],
+            "rows": [
+              [
+                "O3",
+                2,
+                3000
+              ],
+              [
+                "O5",
+                2,
+                2000
+              ]
+            ],
+            "truncated": false,
+            "cells_truncated": false
+          }
+        },
+        {
+          "sql": "SELECT o.order_id, o.amount_cents AS order_amount_cents, c.segment\nFROM orders o\nJOIN customers c ON o.customer_id = c.customer_id\nWHERE o.order_id IN ('O3', 'O5');",
+          "result": {
+            "columns": [
+              "order_id",
+              "order_amount_cents",
+              "segment"
+            ],
+            "rows": [
+              [
+                "O3",
+                5000,
+                "small"
+              ],
+              [
+                "O5",
+                4000,
+                "small"
+              ]
+            ],
+            "truncated": false,
+            "cells_truncated": false
+          }
+        }
+      ],
+      "error": null,
+      "model_responses": [
+        {
+          "content": "",
+          "additional_kwargs": {
+            "refusal": null
+          },
+          "response_metadata": {
+            "token_usage": {
+              "completion_tokens": 57,
+              "prompt_tokens": 392,
+              "total_tokens": 449,
+              "completion_tokens_details": {
+                "accepted_prediction_tokens": 0,
+                "audio_tokens": 0,
+                "reasoning_tokens": 0,
+                "rejected_prediction_tokens": 0
+              },
+              "prompt_tokens_details": {
+                "audio_tokens": 0,
+                "cache_write_tokens": null,
+                "cached_tokens": 0
+              }
+            },
+            "model_provider": "openai",
+            "model_name": "gpt-4.1-mini-2025-04-14",
+            "system_fingerprint": "fp_a39d4f1b74",
+            "id": "chatcmpl-Ee1PwPSVqZs2z6DmKcGAU1SGt7SxH",
+            "service_tier": "default",
+            "finish_reason": "tool_calls",
+            "logprobs": null
+          },
+          "type": "ai",
+          "name": null,
+          "id": "lc_run--01a1837b-7ddf-7409-bac6-053ee2e43de2-0",
+          "tool_calls": [
+            {
+              "name": "query_database",
+              "args": {
+                "sql": "SELECT order_id, COUNT(refund_id) AS refund_count, SUM(amount_cents) AS total_refunded_cents\nFROM refunds\nGROUP BY order_id\nHAVING COUNT(refund_id) > 1;"
+              },
+              "id": "call_gOs3CZK8dtnexJGzrtvfVP5b",
+              "type": "tool_call"
+            }
+          ],
+          "invalid_tool_calls": [],
+          "usage_metadata": {
+            "input_tokens": 392,
+            "output_tokens": 57,
+            "total_tokens": 449,
+            "input_token_details": {
+              "audio": 0,
+              "cache_read": 0
+            },
+            "output_token_details": {
+              "audio": 0,
+              "reasoning": 0
+            }
+          }
+        },
+        {
+          "content": "The query result shows two orders with multiple refunds:\n- Order O3 has 2 refunds totaling 3000 cents.\n- Order O5 has 2 refunds totaling 2000 cents.\n\nA useful follow-up query would be to get details about these orders, such as their original order amounts and customer segments. This will help understand the context of these multiple refunds.\n\nI will query the orders and customers tables for these order_ids to get order amounts and customer segments.",
+          "additional_kwargs": {
+            "refusal": null
+          },
+          "response_metadata": {
+            "token_usage": {
+              "completion_tokens": 154,
+              "prompt_tokens": 533,
+              "total_tokens": 687,
+              "completion_tokens_details": {
+                "accepted_prediction_tokens": 0,
+                "audio_tokens": 0,
+                "reasoning_tokens": 0,
+                "rejected_prediction_tokens": 0
+              },
+              "prompt_tokens_details": {
+                "audio_tokens": 0,
+                "cache_write_tokens": null,
+                "cached_tokens": 0
+              }
+            },
+            "model_provider": "openai",
+            "model_name": "gpt-4.1-mini-2025-04-14",
+            "system_fingerprint": "fp_a39d4f1b74",
+            "id": "chatcmpl-Ee1PypMdKAUvy4QeNYxy5blPp5oFa",
+            "service_tier": "default",
+            "finish_reason": "tool_calls",
+            "logprobs": null
+          },
+          "type": "ai",
+          "name": null,
+          "id": "lc_run--01a1837b-824a-73f0-b60a-8daaa52a985e-0",
+          "tool_calls": [
+            {
+              "name": "query_database",
+              "args": {
+                "sql": "SELECT o.order_id, o.amount_cents AS order_amount_cents, c.segment\nFROM orders o\nJOIN customers c ON o.customer_id = c.customer_id\nWHERE o.order_id IN ('O3', 'O5');"
+              },
+              "id": "call_zBk4o5kYihwsOVBiHvFtH3ZR",
+              "type": "tool_call"
+            }
+          ],
+          "invalid_tool_calls": [],
+          "usage_metadata": {
+            "input_tokens": 533,
+            "output_tokens": 154,
+            "total_tokens": 687,
+            "input_token_details": {
+              "audio": 0,
+              "cache_read": 0
+            },
+            "output_token_details": {
+              "audio": 0,
+              "reasoning": 0
+            }
+          }
+        },
+        {
+          "content": "Orders with multiple refunds and their refund amounts are:\n\n- Order O3: Original amount 5000 cents, refunded 3000 cents, customer segment 'small'.\n- Order O5: Original amount 4000 cents, refunded 2000 cents, customer segment 'small'.\n\nBoth orders belong to the 'small' customer segment. The refunds represent a significant portion of the original order amounts. If you want, I can investigate further details about these orders or refunds.",
+          "additional_kwargs": {
+            "refusal": null
+          },
+          "response_metadata": {
+            "token_usage": {
+              "completion_tokens": 95,
+              "prompt_tokens": 753,
+              "total_tokens": 848,
+              "completion_tokens_details": {
+                "accepted_prediction_tokens": 0,
+                "audio_tokens": 0,
+                "reasoning_tokens": 0,
+                "rejected_prediction_tokens": 0
+              },
+              "prompt_tokens_details": {
+                "audio_tokens": 0,
+                "cache_write_tokens": null,
+                "cached_tokens": 0
+              }
+            },
+            "model_provider": "openai",
+            "model_name": "gpt-4.1-mini-2025-04-14",
+            "system_fingerprint": "fp_a39d4f1b74",
+            "id": "chatcmpl-Ee1Q1lvUGD1UasEHwnROr5Mr2I70W",
+            "service_tier": "default",
+            "finish_reason": "stop",
+            "logprobs": null
+          },
+          "type": "ai",
+          "name": null,
+          "id": "lc_run--01a1837b-8eb9-7037-a139-9a32b914619d-0",
+          "tool_calls": [],
+          "invalid_tool_calls": [],
+          "usage_metadata": {
+            "input_tokens": 753,
+            "output_tokens": 95,
+            "total_tokens": 848,
+            "input_token_details": {
+              "audio": 0,
+              "cache_read": 0
+            },
+            "output_token_details": {
+              "audio": 0,
+              "reasoning": 0
+            }
+          }
+        },
+        {
+          "content": "The orders that have multiple refunds and their refund amounts are:\n\n- Order O3: This order had 2 refunds totaling 3000 cents. The original order amount was 5000 cents. The customer segment for this order is 'small'.\n- Order O5: This order had 2 refunds totaling 2000 cents. The original order amount was 4000 cents. The customer segment for this order is also 'small'.\n\nIn both cases, the refunds represent a substantial portion of the original order amounts, indicating significant refund activity for these orders within the 'small' customer segment.",
+          "additional_kwargs": {
+            "refusal": null
+          },
+          "response_metadata": {
+            "token_usage": {
+              "completion_tokens": 118,
+              "prompt_tokens": 927,
+              "total_tokens": 1045,
+              "completion_tokens_details": {
+                "accepted_prediction_tokens": 0,
+                "audio_tokens": 0,
+                "reasoning_tokens": 0,
+                "rejected_prediction_tokens": 0
+              },
+              "prompt_tokens_details": {
+                "audio_tokens": 0,
+                "cache_write_tokens": null,
+                "cached_tokens": 0
+              }
+            },
+            "model_provider": "openai",
+            "model_name": "gpt-4.1-mini-2025-04-14",
+            "system_fingerprint": "fp_a39d4f1b74",
+            "id": "chatcmpl-Ee1Q3gMrMLKYzlc2chzfQy0pOKYmG",
+            "service_tier": "default",
+            "finish_reason": "stop",
+            "logprobs": null
+          },
+          "type": "ai",
+          "name": null,
+          "id": "lc_run--01a1837b-951c-7105-bc36-a9982eb93e90-0",
+          "tool_calls": [],
+          "invalid_tool_calls": [],
+          "usage_metadata": {
+            "input_tokens": 927,
+            "output_tokens": 118,
+            "total_tokens": 1045,
+            "input_token_details": {
+              "audio": 0,
+              "cache_read": 0
+            },
+            "output_token_details": {
+              "audio": 0,
+              "reasoning": 0
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "in_progress": false,
+  "definitions": "\nYou are a business data investigator. Answer questions using\nSQL evidence from the database.\n\nBUSINESS RULES:\n- Gross sales: sum order amounts by order_date.\n- Refunds: sum refund amounts by refund_date.\n- Net sales = gross sales - refunds.\n- Amounts are integer USD cents.\n- Use UTC and half-open date ranges [start, end).\n- One order may have multiple refunds. Aggregate orders and\n  refunds separately to avoid duplicating gross sales.\n- Attribute refunds to the customer segment of the original order.\n- Refund reasons are not available in the database.\n\nINVESTIGATION:\n- Execute one SQL query at a time and use its result to\n  decide what to investigate next.\n- For net sales, always obtain evidence for both gross sales\n  and refunds, even if one of them is zero or has no records.\n  No orders in a period does not imply no refunds in that period.\n- For period comparisons, calculate relevant changes and\n  explain which components contributed to them.\n- Only investigate additional metrics when relevant to\n  the user's question.\n\nEVIDENCE:\n- Never invent or assume values not supported by SQL results.\n- Do not interpret missing rows as zero without justification.\n- If evidence is missing, query the database within the\n  available budget or state the limitation.\n- Answer the original question directly, using verified evidence.\n",
+  "configuration": {
+    "provider": "openai",
+    "model": "gpt-4.1-mini",
+    "query_limit": 6,
+    "row_limit": 100,
+    "query_seconds": 2
+  }
+}

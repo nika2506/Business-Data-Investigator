@@ -23,15 +23,16 @@ def query_database(sql: str) -> dict:
 
 class InvestigatorAgent:
     def __init__(self):
-        self.llm = ChatOpenAI(
-            model=OPENAI_MODEL,
-            temperature=0,
-        )
+        # Creating ChatOpenAI eagerly would require an API key even for replay.
+        self.llm = None
+        self.llm_with_tools = None
 
-        self.llm_with_tools = self.llm.bind_tools(
-            [query_database],
-            parallel_tool_calls=False,
-        )
+    def _ensure_model(self):
+        if self.llm is None:
+            self.llm = ChatOpenAI(model=OPENAI_MODEL, temperature=0)
+            self.llm_with_tools = self.llm.bind_tools(
+                [query_database], parallel_tool_calls=False
+            )
 
     def offline_investigate(self, question: str) -> tuple[str, list]:
         MONTHLY_SQL = """WITH gross AS (SELECT substr(order_date, 1, 7) AS month, sum (amount_cents) AS gross_cents \
@@ -82,7 +83,66 @@ class InvestigatorAgent:
         segment_result = query(segment_sql)
         return answer, [{"sql": sql, "result": result}, {"sql": segment_sql, "result": segment_result}]
 
+    def replay_investigate(self, saved_turn: dict, attempts: list) -> tuple[str, dict]:
+        """Re-execute saved real LLM SQL tool calls; never invoke a model."""
+        saved_responses = saved_turn.get("model_responses")
+        recorded_attempts = saved_turn.get("attempts")
+        if not isinstance(saved_responses, list) or not saved_responses:
+            raise ValueError("No recorded model responses in this turn.")
+        if not isinstance(recorded_attempts, list) or not recorded_attempts:
+            raise ValueError("No recorded SQL attempts in this turn.")
+        if len(recorded_attempts) > MAX_TOOL_CALLS:
+            raise ValueError("Recorded investigation exceeds SQL attempt limit.")
+
+        recorded_sql = []
+        for saved in saved_responses:
+            if not isinstance(saved, dict):
+                raise ValueError("Invalid recorded model response.")
+            response = AIMessage.model_validate(saved)
+            if response.invalid_tool_calls:
+                raise ValueError("Recorded response contains invalid tool calls.")
+            if len(response.tool_calls) > 1:
+                raise ValueError("Recorded response contains parallel tool calls.")
+            for call in response.tool_calls:
+                if call.get("name") != "query_database":
+                    raise ValueError("Recorded response contains an unknown tool.")
+                sql = call.get("args", {}).get("sql")
+                if not isinstance(sql, str) or not sql.strip():
+                    raise ValueError("Recorded SQL is invalid.")
+                recorded_sql.append(sql)
+
+        if not recorded_sql or len(recorded_sql) != len(recorded_attempts):
+            raise ValueError("Recorded model calls and SQL attempts do not match.")
+        for sql, recorded in zip(recorded_sql, recorded_attempts):
+            if not isinstance(recorded, dict) or sql != recorded.get("sql"):
+                raise ValueError("Saved SQL differs from recorded model tool calls.")
+
+        mismatches = []
+        for index, (sql, recorded) in enumerate(zip(recorded_sql, recorded_attempts), 1):
+            actual = query(sql)  # Existing read-only SQL guard and limits.
+            attempts.append({"sql": sql, "result": actual})
+            expected = recorded.get("result")
+            if not isinstance(expected, dict):
+                mismatches.append(index)
+                continue
+            # Ignore incidental metadata, compare actual query evidence.
+            fields = ("columns", "rows", "truncated", "error")
+            if any(actual.get(key) != expected.get(key)
+                   for key in fields if key in actual or key in expected):
+                mismatches.append(index)
+
+        answer = saved_turn.get("model_answer_unverified") or saved_turn.get("answer")
+        if not isinstance(answer, str):
+            answer = "No recorded final model answer available."
+        verification = {
+            "matched": not mismatches,
+            "checked_queries": len(attempts),
+            "mismatch_queries": mismatches,
+        }
+        return answer, verification
+
     def online_investigate(self, question: str, previous: list, attempts: list, responses: list) -> str:
+        self._ensure_model()
 
         messages = [
             SystemMessage(
