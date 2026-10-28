@@ -1,20 +1,105 @@
 {
   "template": false,
   "categories": {
-    "development_tools_and_models": {"status": "used", "files": ["ai-workflow/README.md"], "notes": "OpenCode with openai/gpt-6.1-terra for this documentation session; version and earlier development history unavailable."},
-    "plugins_and_extensions": {"status": "not-exportable", "files": [], "notes": "None known in this session; earlier usage unknown."},
-    "application_models_and_parameters": {"status": "used", "files": ["app.py", "requirements.txt", "ai-workflow/.env.example"], "notes": "Local Ollama integration; default llama3.2:3b, timeout 120 seconds, zero retries; sampling and output limits unspecified. Live tests exposed invalid SQL, malformed tool calls and incorrect units; generated answers require review."},
-    "skills": {"status": "not-exportable", "files": ["skills/generate-assignment-data/SKILL.md"], "notes": "Bundled skill exists; its use is not evidenced. None used in this documentation session; earlier usage unknown."},
-    "agent_instructions_and_subagents": {"status": "not-exportable", "files": [], "notes": "Session instructions supplied by assistant environment, not available as a project file. No subagent used in this session; earlier usage unknown."},
-    "hooks_and_scripts": {"status": "not-exportable", "files": [], "notes": "No exercise-specific hook known in this session; earlier usage unknown."},
-    "prompts_and_rules": {"status": "used", "files": ["app.py"], "notes": "Application system prompt and SQL tool definition are in app.py. Documentation request was supplied in conversation."},
-    "tool_and_mcp_settings": {"status": "not-exportable", "files": [], "notes": "Full assistant tool settings unavailable; no MCP server known to be used in this session."},
-    "permissions_and_environment_names": {"status": "redacted", "files": ["ai-workflow/.env.example"], "notes": "Application variable names only; no credential values or private endpoints. Assistant permission configuration unavailable."}
+    "development_tools_and_models": {
+      "status": "used",
+      "files": [
+        "ai-workflow/README.md"
+      ],
+      "notes": "OpenCode (documented model: openai/gpt-6.1-terra) for initial implementation/documentation; ChatGPT for later implementation, review, debugging, and tests. Other exact model/version settings not verified."
+    },
+    "plugins_and_extensions": {
+      "status": "not-exportable",
+      "files": [],
+      "notes": "No exercise-specific plugin or extension configuration documented."
+    },
+    "application_models_and_parameters": {
+      "status": "used",
+      "files": [
+        "app/agent.py",
+        "app/config.py",
+      ],
+      "notes": "Final application uses LangChain ChatOpenAI for online SQL investigations. Model name, temperature and other parameters should be verified against the final source and environment. Offline and Replay do not require model calls."
+    },
+    "skills": {
+      "status": "not-exportable",
+      "files": [
+        "skills/generate-assignment-data/SKILL.md"
+      ],
+      "notes": "Bundled skill present in starter pack; no confirmed use."
+    },
+    "agent_instructions_and_subagents": {
+      "status": "not-exportable",
+      "files": [],
+      "notes": "Hosted AI assistant system instructions and full session state are not exportable. No confirmed subagent configuration."
+    },
+    "hooks_and_scripts": {
+      "status": "not-exportable",
+      "files": [],
+      "notes": "No task-specific hooks documented."
+    },
+    "prompts_and_rules": {
+      "status": "used",
+      "files": [
+        "app/prompts.py",
+        "ai-workflow/README.md"
+      ],
+      "notes": "Runtime investigation instructions and SQL tool schema are defined in the application; development prompts summarized in workflow README. Exact full conversation exports are not included."
+    },
+    "tool_and_mcp_settings": {
+      "status": "not-exportable",
+      "files": [],
+      "notes": "No task-specific MCP configuration documented; complete hosted assistant settings unavailable."
+    },
+    "permissions_and_environment_names": {
+      "status": "redacted",
+      "files": [
+        "app/config.py"
+      ],
+      "notes": "Application environment variables INVESTIGATION_DB and OPENAI_MODEL are defined in app/config.py. OPENAI_API_KEY is required for online model execution. No secret values are included. OpenCode permission settings were not exported."
+    }
   },
   "configuration_records": [
-    {"name": "Documentation assistant", "category": "development_tools_and_models", "purpose": "Inspect repository and document current behavior", "original_path_or_scope": "OpenCode session", "saved_path": "ai-workflow/README.md", "version_or_commit": "Tool version unavailable; model openai/gpt-6.1-terra", "used_during": "Documentation update", "status": "not-exportable", "redactions": ["Full session configuration unavailable"]},
-    {"name": "Application model and SQL tool", "category": "application_models_and_parameters", "purpose": "Optional model-backed investigation", "original_path_or_scope": "app.py and process environment", "saved_path": "app.py", "version_or_commit": "Current working tree; earlier versions unavailable", "used_during": "Application integration; actual model execution unknown", "status": "used", "redactions": ["Credentials and private endpoint values omitted"]}
+    {
+      "name": "OpenCode development assistant",
+      "category": "development_tools_and_models",
+      "purpose": "Initial application generation and workflow documentation",
+      "original_path_or_scope": "OpenCode sessions",
+      "saved_path": "ai-workflow/README.md",
+      "version_or_commit": "Model openai/gpt-6.1-terra recorded in initial manifest; OpenCode version and other sessions not verified",
+      "used_during": "Initial implementation and documentation",
+      "status": "used",
+      "redactions": [
+        "Full session logs and tool configuration not available"
+      ]
+    },
+    {
+      "name": "ChatGPT development assistant",
+      "category": "development_tools_and_models",
+      "purpose": "Iterative code changes, Replay implementation, test creation and debugging",
+      "original_path_or_scope": "ChatGPT conversations",
+      "saved_path": "ai-workflow/README.md",
+      "version_or_commit": "Exact per-session model identifiers and settings not exported",
+      "used_during": "Subsequent implementation and validation",
+      "status": "used",
+      "redactions": [
+        "Full conversation transcript and platform configuration not included"
+      ]
+    },
+    {
+      "name": "Application LLM and SQL tools",
+      "category": "application_models_and_parameters",
+      "purpose": "Generate read-only SQL investigations and adaptive follow-ups",
+      "original_path_or_scope": "app/agent.py and application environment",
+      "saved_path": "app/agent.py",
+      "version_or_commit": "Final working tree; verify model name in source",
+      "used_during": "Online application investigations",
+      "status": "used",
+      "redactions": [
+        "API key omitted"
+      ]
+    }
   ],
-  "replay_command": "",
+  "replay_command": "See ai-workflow/README.md (Replay is performed through the application UI by importing an exported investigation JSON).",
   "workflow_example_path": "ai-workflow/README.md"
 }

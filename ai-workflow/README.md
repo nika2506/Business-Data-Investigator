@@ -1,21 +1,29 @@
 # AI workflow
 
-## Known development use
+This file documents **how AI tools were used to develop and validate the submission**, rather than describing only the final application. The initial OpenCode-generated implementation and the final application differ substantially. The Git history is the source of truth for code evolution.
 
-For this documentation update, OpenCode used model `openai/gpt-6.1-terra` to inspect the repository and write documentation. Its exact tool version, model sampling settings, and any earlier development sessions or configuration are not available in the repository or this session. Do not infer that the application was authored or tested by this tool. No exercise-specific skill, subagent, hook, plugin, or MCP server is known to have been used in this documentation session; earlier usage is unknown. The bundled `skills/generate-assignment-data/SKILL.md` exists, but its use is not evidenced here.
+## Development tools and roles
 
-The session instructions were supplied through the assistant environment rather than an exportable project configuration file. No sanitized user-level settings or earlier configuration snapshots are available. The manifest describes what is known, not an exhaustive historical audit.
+- **OpenCode:** Used for the initial implementation and the first AI-workflow documentation. The original manifest recorded `openai/gpt-6.1-terra` for the documentation session. The precise OpenCode version, complete session logs, and model parameters are not available here. Do not interpret that single recorded model as proof that all earlier OpenCode sessions used it.
+- **ChatGPT:** Used in later iterations to discuss architecture, generate and review targeted code changes, implement Replay, write tests, debug failures, and prepare documentation. Exact model settings and full chat transcripts are not included.
+- **Application LLM:** Separate from the coding assistants. The final application uses LangChain with OpenAI (`ChatOpenAI`) for model-backed SQL investigations. The final model identifier and inference parameters should be read from the actual checked-in code and environment; credentials are not committed.
 
-## Application model configuration
+No exercise-specific MCP servers, hooks, plugins, or subagents are documented as used. The starter pack included `skills/generate-assignment-data/SKILL.md`, but its use has not been established.
 
-This is separate from the development assistant. `app.py` uses Ollama's local `/api/chat` endpoint with tool calling. `OLLAMA_MODEL` defaults to `llama3.2:3b`, and `OLLAMA_HOST` defaults to `http://127.0.0.1:11434`. The HTTP timeout is 120 seconds with no retries; sampling and output limits use Ollama defaults. The system prompt and tool definition are in `app.py`; query attempts are capped at six per question. The model generates SQL based on the question. Its queries and narrative are unverified; a live test of `llama3.2:3b` produced invalid SQL and a malformed tool call. `INVESTIGATION_DB` optionally changes the database path. Variable names are listed in `.env.example`, which is a reference only and is not automatically loaded by the app.
+## Implementation evolution
 
-## Workflow example
+1. **Initial implementation:** An OpenCode-generated SQL investigation application, originally documented as a single-file `app.py` using local Ollama. This description is historical, not the final runtime configuration.
+2. **Revised application:** Moved to a modular FastAPI application (`app/main.py`, `app/agent.py`, etc.) with LangChain/OpenAI model mode, a deterministic Offline mode, SQL evidence, and optional context from the preceding investigation.
+3. **Replay mode:** Added import of an exported real model investigation. Replay re-executes the recorded SQL against the current database and compares evidence, without making new LLM calls. It can report matched or mismatched evidence. The recorded final narrative is reused, not regenerated.
+4. **Validation and debugging:** Iteratively tested and refined the AI-generated application, identifying and fixing issues with SQL query generation, data aggregation, and investigation logic. Verified results against expected business metrics, improved handling of incorrect or incomplete queries, and added automated tests using temporary SQLite fixtures and mocked/no-LLM execution paths.
 
-The instruction for this session was to document the current application, its modes, seed results, limitations, and honest AI use without editing the application or frontend. The assistant inspected `app.py`, `static/index.html`, the seed reference, dependencies, and workflow templates. An improvement was to distinguish the fixed offline summary from a question-specific model answer and to label seed values as expected references rather than observed test results. This is an inspection and documentation example, not a claim of application testing or a saved model response.
+## Reproduction and checks
 
-## Reproduce and limitations
+- **Offline:** Run the FastAPI app following the root `README.md` and select Offline; no OpenAI API call is required.
+- **Model:** Configure a valid OpenAI API key and use Model mode; results depend on the model and database state.
+- **Replay:** In the UI, export a genuine Model investigation as JSON, then import that JSON in Replay mode. The app reruns the saved SQL and compares results without contacting OpenAI. To check mismatch reporting, alter the database or the expected saved evidence and replay again. Replay does not regenerate the original response.
+- **Tests:** Run `python -m unittest -v tests.test_investigator` if `tests` is importable as a package; otherwise run the test file from the project root using your test runner. No claim is made here that the entire suite passed on the final checkout; record the actual result before submission.
 
-See the root README for dependency installation, server startup, environment variables, and offline use. Application settings live in `app.py` and the server process environment; no additional workflow configuration needs to be restored for the offline path. The dependency file specifies ranges, not exact versions. Reproducing this development assistant session exactly is not possible from the available materials: tool version, full session configuration, and earlier history are unavailable. No saved real application model responses are present to replay. Running model mode requires an Ollama server and a locally installed tool-capable model; it produces new responses, not a replay.
+## Transparency and limitations
 
-Time spent was not tracked. No verification beyond the repository inspection described above is claimed.
+The original documentation described an Ollama-based `app.py`, stated that no real responses were available to replay, and only claimed documentation inspection. Those claims refer to the early snapshot and must not be presented as properties of the final application. The final app has Replay and uses OpenAI through LangChain. Historical prompt logs and full AI assistant configurations are not reconstructed or invented. Secrets, API keys, and private configuration values must not be committed. Development time was not tracked reliably.
