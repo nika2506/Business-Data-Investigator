@@ -82,21 +82,6 @@ class InvestigatorAgent:
         segment_result = query(segment_sql)
         return answer, [{"sql": sql, "result": result}, {"sql": segment_sql, "result": segment_result}]
 
-    def replay_investigate(self, saved_responses, attempts):
-        for saved in saved_responses:
-            response = AIMessage.model_validate(saved)
-
-            for call in response.tool_calls:
-                sql = call["args"]["sql"]
-                result = query(sql)
-
-                attempts.append({
-                    "sql": sql,
-                    "result": result,
-                })
-
-        return "Replay completed."
-
     def online_investigate(self, question: str, previous: list, attempts: list, responses: list) -> str:
 
         messages = [

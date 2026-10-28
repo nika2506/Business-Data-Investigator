@@ -67,60 +67,6 @@
     .query-error { color: #913f2c; background: #fff5f1; }
     [hidden] { display: none !important; }
     @media (max-width: 760px) { main { padding: 42px 18px 60px; } .topbar-inner { padding: 16px 18px; } .top-note { display: none; } .layout { grid-template-columns: 1fr; } .sidebar { order: 2; } .composer, .report { padding: 20px; } }
-    .report-actions {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .saved-reports {
-      margin-top: 20px;
-    }
-
-    #save-report-panel {
-      margin-bottom: 16px;
-    }
-
-    #save-report-panel input,
-    .saved-reports select,
-    .saved-reports input {
-      width: 100%;
-      border: 1px solid #d4ded6;
-      border-radius: 9px;
-      padding: 10px 12px;
-      background: #fbfcfa;
-      color: var(--ink);
-      font: inherit;
-    }
-
-    #save-report-panel .section-label {
-      margin-top: 12px;
-    }
-
-    .field-hint {
-      font-size: 12px;
-      color: var(--muted);
-    }
-
-    .period-fields {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin: 16px 0;
-    }
-
-    .period-fields label,
-    .saved-reports > label {
-      display: block;
-      font-size: 13px;
-      margin-bottom: 6px;
-    }
-
-    @media (max-width: 520px) {
-      .period-fields {
-        grid-template-columns: 1fr;
-      }
-    }
   </style>
 </head>
 <body>
@@ -136,55 +82,9 @@
           <div class="loading" id="loading" role="status" hidden>Investigating your question. This may take a moment...</div>
           <div class="notice" id="error" role="alert" hidden></div>
         </form>
-          <section class="card composer saved-reports">
-  <div class="section-label">Saved reports</div>
-
-  <label for="saved-report-select">Choose a report</label>
-  <select id="saved-report-select">
-    <option value="">Select a saved report</option>
-  </select>
-
-  <div class="period-fields">
-    <div>
-      <label for="report-start">Start date</label>
-      <input id="report-start" type="date" value="2026-09-01">
-    </div>
-    <div>
-      <label for="report-end">End date (exclusive)</label>
-      <input id="report-end" type="date" value="2026-10-01">
-    </div>
-  </div>
-
-  <button class="primary" id="run-saved-report" type="button">
-    Run report
-  </button>
-
-  <div class="loading" id="report-loading" hidden>
-    Running saved report...
-  </div>
-  <div class="notice" id="report-error" role="alert" hidden></div>
-</section>
         <section class="results" id="results" aria-labelledby="results-title" hidden>
-            <div class="results-heading">
-  <h2 id="results-title">Investigation report</h2>
-  <div class="report-actions">
-    <button class="secondary" id="save-report" type="button">
-      Save as reusable report
-    </button>
-    <button class="secondary" id="export" type="button">
-      Download JSON
-    </button>
-  </div>
-</div>
-
-<div class="card composer" id="save-report-panel" hidden>
-  <label class="section-label" for="report-name">Report name</label>
-  <input id="report-name" type="text" placeholder="e.g. Monthly net sales">
-  <p class="field-hint">Saves the original question and SQL investigation history. Choose a new date range when running it again.</p>
-  <button class="primary" id="confirm-save" type="button">Save report</button>
-  <div class="notice" id="save-message" role="status" hidden></div>
-</div>
-<article class="card report" id="report"></article>
+          <div class="results-heading"><h2 id="results-title">Investigation report</h2><button class="secondary" id="export" type="button">Download JSON</button></div>
+          <article class="card report" id="report"></article>
         </section>
       </div>
       <aside class="sidebar"><div class="eyebrow">How it works</div><h2>From question to clarity.</h2><p>Explore the answer and see the data used to support it.</p><div class="steps"><div class="step"><b>01</b><span>Ask a business question</span></div><div class="step"><b>02</b><span>Review the explanation and evidence</span></div><div class="step"><b>03</b><span>Follow up or export your report</span></div></div></aside>
@@ -197,131 +97,6 @@
     const reportElement = document.getElementById('report');
     const errorElement = document.getElementById('error');
     let previousReport = null;
-
-    const savePanel = document.getElementById('save-report-panel');
-    const saveMessage = document.getElementById('save-message');
-    const savedReportSelect = document.getElementById('saved-report-select');
-    const reportError = document.getElementById('report-error');
-
-    async function apiRequest(url, options = {}) {
-      const response = await fetch(url, options);
-      const data = await response.json().catch(() => null);
-
-      if (!response.ok) {
-        throw new Error(
-          data?.detail
-            ? displayValue(data.detail)
-            : `Request failed (HTTP ${response.status})`
-        );
-      }
-
-      return data;
-    }
-
-    async function refreshSavedReports() {
-      const reports = await apiRequest('/reports');
-      const selectedId = savedReportSelect.value;
-
-      savedReportSelect.replaceChildren(
-        new Option('Select a saved report', '')
-      );
-
-      reports.forEach(report => {
-        savedReportSelect.add(
-          new Option(report.name, report.id)
-        );
-      });
-
-      if (reports.some(report => report.id === selectedId)) {
-        savedReportSelect.value = selectedId;
-      }
-    }
-
-    document.getElementById('save-report').addEventListener('click', () => {
-      if (!previousReport) return;
-
-      document.getElementById('report-name').value = '';
-
-      saveMessage.hidden = true;
-      savePanel.hidden = false;
-    });
-
-    document.getElementById('confirm-save').addEventListener('click', async () => {
-      const button = document.getElementById('confirm-save');
-      button.disabled = true;
-      saveMessage.hidden = true;
-
-      try {
-        const report = await apiRequest('/reports', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: document.getElementById('report-name').value.trim(),
-            investigation_id: previousReport.investigation_id
-          })
-        });
-
-        await refreshSavedReports();
-        savedReportSelect.value = report.id;
-        savePanel.hidden = true;
-      } catch (error) {
-        saveMessage.textContent = error.message;
-        saveMessage.hidden = false;
-      } finally {
-        button.disabled = false;
-      }
-    });
-
-    document.getElementById('run-saved-report').addEventListener('click', async () => {
-      const reportId = savedReportSelect.value;
-      const startDate = document.getElementById('report-start').value;
-      const endDate = document.getElementById('report-end').value;
-
-      reportError.hidden = true;
-
-      if (!reportId || !startDate || !endDate || startDate >= endDate) {
-        reportError.textContent = 'Select a report and a valid date range.';
-        reportError.hidden = false;
-        return;
-      }
-
-      const button = document.getElementById('run-saved-report');
-      const loading = document.getElementById('report-loading');
-
-      button.disabled = true;
-      loading.hidden = false;
-
-      try {
-        const data = await apiRequest(
-          `/reports/${encodeURIComponent(reportId)}/run`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              start_date: startDate,
-              end_date: endDate
-            })
-          }
-        );
-
-        showInvestigationResult(data);
-        document.getElementById('results').scrollIntoView({
-          behavior: 'smooth'
-        });
-      } catch (error) {
-        reportError.textContent = error.message;
-        reportError.hidden = false;
-      } finally {
-        button.disabled = false;
-        loading.hidden = true;
-      }
-    });
-
-    refreshSavedReports().catch(error => {
-      reportError.textContent = error.message;
-      reportError.hidden = false;
-    });
-
 
     function element(tag, text, className) {
       const node = document.createElement(tag);
@@ -390,36 +165,6 @@
       reportElement.append(section);
     }
 
-    function showInvestigationResult(data) {
-      const turn = data.turn;
-
-      renderReport({
-        question: turn.question,
-        explanation: turn.answer + (turn.error ? '\nError: ' + turn.error : ''),
-        status: turn.error
-          ? 'Incomplete'
-          : turn.mode === 'offline'
-            ? 'Offline summary'
-            : 'Model answer (unverified)',
-        assumptions: [
-          'UTC dates; start inclusive and end exclusive.',
-          'Amounts are integer USD cents; refunds use refund date and original customer segment.',
-          'Model-generated SQL and explanations can be incorrect; inspect the evidence.'
-        ],
-        queries: turn.attempts.map(item => ({
-          sql: item.sql,
-          ...item.result
-        }))
-      });
-
-      previousReport = data;
-
-      document.getElementById('results').hidden = false;
-      document.getElementById('followup-label').hidden = false;
-      document.getElementById('first-hint').hidden = true;
-      followup.checked = true;
-    }
-
     form.addEventListener('submit', async event => {
       event.preventDefault();
       const text = question.value.trim();
@@ -438,7 +183,13 @@
           throw new Error(detail ? displayValue(detail) : `Request failed (HTTP ${response.status}).`);
         }
         if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('The server returned an invalid report.');
-        showInvestigationResult(data);
+        const turn = data.turn;
+        renderReport({ question: turn.question, explanation: turn.answer + (turn.error ? '\nError: ' + turn.error : ''), status: turn.error ? 'Incomplete' : turn.mode === 'offline' ? 'Offline summary' : 'Model answer (unverified)', assumptions: ['UTC dates; start inclusive and end exclusive.', 'Amounts are integer USD cents; refunds use refund date and original customer segment.', 'Model-generated SQL and explanations can be incorrect; inspect the evidence.'], queries: turn.attempts.map(item => ({sql: item.sql, ...item.result})) });
+        previousReport = data;
+        document.getElementById('results').hidden = false;
+        document.getElementById('followup-label').hidden = false;
+        document.getElementById('first-hint').hidden = true;
+        followup.checked = true;
       } catch (error) {
         errorElement.textContent = error.message || 'Unable to reach the server. Please try again.';
         errorElement.hidden = false;

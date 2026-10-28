@@ -14,12 +14,8 @@ BUSINESS RULES:
 - Refund reasons are not available in the database.
 
 INVESTIGATION:
-- Execute exactly one SQL statement per tool call.
-- Use each query result to decide what to investigate next.
-- Use unique CTE names that do not conflict with existing table names.
-- Aggregate gross sales and refunds separately before joining
-  their results. Use COALESCE on segment identifiers when
-  combining groups that may exist on only one side.
+- Execute one SQL query at a time and use its result to
+  decide what to investigate next.
 - For net sales, always obtain evidence for both gross sales
   and refunds, even if one of them is zero or has no records.
   No orders in a period does not imply no refunds in that period.
