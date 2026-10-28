@@ -1,0 +1,281 @@
+{
+  "investigation_id": "b9ba521b-5e9d-4852-a02a-097b0d4a0d1b",
+  "turns": [
+    {
+      "question": "Compare September 2026 net sales by customer segment",
+      "mode": "model",
+      "answer": "In September 2026, the net sales by customer segment were as follows:\n\n- Large segment:\n  - Gross sales: $110.00 (11,000 cents)\n  - Refunds: $17.00 (1,700 cents)\n  - Net sales: $93.00 (9,300 cents)\n\n- Small segment:\n  - Gross sales: $80.00 (8,000 cents)\n  - Refunds: $50.00 (5,000 cents)\n  - Net sales: $30.00 (3,000 cents)\n\nThe large segment had significantly higher net sales ($93.00) compared to the small segment ($30.00). This difference is due to both higher gross sales and lower refunds in the large segment. The small segment's net sales were reduced substantially by relatively high refunds, which accounted for more than half of their gross sales.",
+      "model_answer_unverified": "In September 2026, the net sales by customer segment were as follows:\n\n- Large segment:\n  - Gross sales: $110.00 (11,000 cents)\n  - Refunds: $17.00 (1,700 cents)\n  - Net sales: $93.00 (9,300 cents)\n\n- Small segment:\n  - Gross sales: $80.00 (8,000 cents)\n  - Refunds: $50.00 (5,000 cents)\n  - Net sales: $30.00 (3,000 cents)\n\nThe large segment had significantly higher net sales ($93.00) compared to the small segment ($30.00). This difference is due to both higher gross sales and lower refunds in the large segment. The small segment's net sales were reduced substantially by relatively high refunds, which accounted for more than half of their gross sales.",
+      "attempts": [
+        {
+          "sql": "-- Calculate gross sales by customer segment for September 2026\nSELECT c.segment, SUM(o.amount_cents) AS gross_sales_cents\nFROM orders o\nJOIN customers c ON o.customer_id = c.customer_id\nWHERE o.order_date >= '2026-09-01' AND o.order_date < '2026-10-01'\nGROUP BY c.segment\nORDER BY c.segment;",
+          "result": {
+            "columns": [
+              "segment",
+              "gross_sales_cents"
+            ],
+            "rows": [
+              [
+                "large",
+                11000
+              ],
+              [
+                "small",
+                8000
+              ]
+            ],
+            "truncated": false,
+            "cells_truncated": false
+          }
+        },
+        {
+          "sql": "-- Calculate refunds by customer segment for September 2026\nSELECT c.segment, SUM(r.amount_cents) AS refunds_cents\nFROM refunds r\nJOIN orders o ON r.order_id = o.order_id\nJOIN customers c ON o.customer_id = c.customer_id\nWHERE r.refund_date >= '2026-09-01' AND r.refund_date < '2026-10-01'\nGROUP BY c.segment\nORDER BY c.segment;",
+          "result": {
+            "columns": [
+              "segment",
+              "refunds_cents"
+            ],
+            "rows": [
+              [
+                "large",
+                1700
+              ],
+              [
+                "small",
+                5000
+              ]
+            ],
+            "truncated": false,
+            "cells_truncated": false
+          }
+        }
+      ],
+      "error": null,
+      "model_responses": [
+        {
+          "content": "",
+          "additional_kwargs": {
+            "refusal": null
+          },
+          "response_metadata": {
+            "token_usage": {
+              "completion_tokens": 95,
+              "prompt_tokens": 389,
+              "total_tokens": 484,
+              "completion_tokens_details": {
+                "accepted_prediction_tokens": 0,
+                "audio_tokens": 0,
+                "reasoning_tokens": 0,
+                "rejected_prediction_tokens": 0
+              },
+              "prompt_tokens_details": {
+                "audio_tokens": 0,
+                "cache_write_tokens": null,
+                "cached_tokens": 0
+              }
+            },
+            "model_provider": "openai",
+            "model_name": "gpt-4.1-mini-2025-04-14",
+            "system_fingerprint": "fp_a39d4f1b74",
+            "id": "chatcmpl-Ee3tV5nZr7iaRcpkt1jU2PYRJqw60",
+            "service_tier": "default",
+            "finish_reason": "tool_calls",
+            "logprobs": null
+          },
+          "type": "ai",
+          "name": null,
+          "id": "lc_run--01a1840c-bc7e-73b7-a646-ab93f80f1497-0",
+          "tool_calls": [
+            {
+              "name": "query_database",
+              "args": {
+                "sql": "-- Calculate gross sales by customer segment for September 2026\nSELECT c.segment, SUM(o.amount_cents) AS gross_sales_cents\nFROM orders o\nJOIN customers c ON o.customer_id = c.customer_id\nWHERE o.order_date >= '2026-09-01' AND o.order_date < '2026-10-01'\nGROUP BY c.segment\nORDER BY c.segment;"
+              },
+              "id": "call_RivnYp4j2JqkwUosyPyLoABV",
+              "type": "tool_call"
+            }
+          ],
+          "invalid_tool_calls": [],
+          "usage_metadata": {
+            "input_tokens": 389,
+            "output_tokens": 95,
+            "total_tokens": 484,
+            "input_token_details": {
+              "audio": 0,
+              "cache_read": 0
+            },
+            "output_token_details": {
+              "audio": 0,
+              "reasoning": 0
+            }
+          }
+        },
+        {
+          "content": "The gross sales for September 2026 are $110.00 for the large segment and $80.00 for the small segment (amounts are in cents). To calculate net sales, I need to find the refunds by customer segment for the same period. Since refunds are linked to orders, I will join refunds with orders and customers to attribute refunds to the correct customer segment.",
+          "additional_kwargs": {
+            "refusal": null
+          },
+          "response_metadata": {
+            "token_usage": {
+              "completion_tokens": 184,
+              "prompt_tokens": 554,
+              "total_tokens": 738,
+              "completion_tokens_details": {
+                "accepted_prediction_tokens": 0,
+                "audio_tokens": 0,
+                "reasoning_tokens": 0,
+                "rejected_prediction_tokens": 0
+              },
+              "prompt_tokens_details": {
+                "audio_tokens": 0,
+                "cache_write_tokens": null,
+                "cached_tokens": 0
+              }
+            },
+            "model_provider": "openai",
+            "model_name": "gpt-4.1-mini-2025-04-14",
+            "system_fingerprint": "fp_a39d4f1b74",
+            "id": "chatcmpl-Ee3tW17MhNidBVCSfWFZGGffaWu7r",
+            "service_tier": "default",
+            "finish_reason": "tool_calls",
+            "logprobs": null
+          },
+          "type": "ai",
+          "name": null,
+          "id": "lc_run--01a1840c-c6f7-750c-9d07-ece0d28537f5-0",
+          "tool_calls": [
+            {
+              "name": "query_database",
+              "args": {
+                "sql": "-- Calculate refunds by customer segment for September 2026\nSELECT c.segment, SUM(r.amount_cents) AS refunds_cents\nFROM refunds r\nJOIN orders o ON r.order_id = o.order_id\nJOIN customers c ON o.customer_id = c.customer_id\nWHERE r.refund_date >= '2026-09-01' AND r.refund_date < '2026-10-01'\nGROUP BY c.segment\nORDER BY c.segment;"
+              },
+              "id": "call_4hwkxIcGyonTE1z8itG9BRXL",
+              "type": "tool_call"
+            }
+          ],
+          "invalid_tool_calls": [],
+          "usage_metadata": {
+            "input_tokens": 554,
+            "output_tokens": 184,
+            "total_tokens": 738,
+            "input_token_details": {
+              "audio": 0,
+              "cache_read": 0
+            },
+            "output_token_details": {
+              "audio": 0,
+              "reasoning": 0
+            }
+          }
+        },
+        {
+          "content": "For September 2026, the gross sales and refunds by customer segment are:\n\n- Large segment: Gross sales = $110.00, Refunds = $17.00\n- Small segment: Gross sales = $80.00, Refunds = $50.00\n\nNet sales (gross sales - refunds) are:\n\n- Large segment: $110.00 - $17.00 = $93.00\n- Small segment: $80.00 - $50.00 = $30.00\n\nThus, the large segment had higher net sales ($93.00) compared to the small segment ($30.00) in September 2026.",
+          "additional_kwargs": {
+            "refusal": null
+          },
+          "response_metadata": {
+            "token_usage": {
+              "completion_tokens": 135,
+              "prompt_tokens": 791,
+              "total_tokens": 926,
+              "completion_tokens_details": {
+                "accepted_prediction_tokens": 0,
+                "audio_tokens": 0,
+                "reasoning_tokens": 0,
+                "rejected_prediction_tokens": 0
+              },
+              "prompt_tokens_details": {
+                "audio_tokens": 0,
+                "cache_write_tokens": null,
+                "cached_tokens": 0
+              }
+            },
+            "model_provider": "openai",
+            "model_name": "gpt-4.1-mini-2025-04-14",
+            "system_fingerprint": "fp_a39d4f1b74",
+            "id": "chatcmpl-Ee3tZj68F972CtAiOyxJYqSVofJKF",
+            "service_tier": "default",
+            "finish_reason": "stop",
+            "logprobs": null
+          },
+          "type": "ai",
+          "name": null,
+          "id": "lc_run--01a1840c-d0d8-7080-baf0-e25b217de8a2-0",
+          "tool_calls": [],
+          "invalid_tool_calls": [],
+          "usage_metadata": {
+            "input_tokens": 791,
+            "output_tokens": 135,
+            "total_tokens": 926,
+            "input_token_details": {
+              "audio": 0,
+              "cache_read": 0
+            },
+            "output_token_details": {
+              "audio": 0,
+              "reasoning": 0
+            }
+          }
+        },
+        {
+          "content": "In September 2026, the net sales by customer segment were as follows:\n\n- Large segment:\n  - Gross sales: $110.00 (11,000 cents)\n  - Refunds: $17.00 (1,700 cents)\n  - Net sales: $93.00 (9,300 cents)\n\n- Small segment:\n  - Gross sales: $80.00 (8,000 cents)\n  - Refunds: $50.00 (5,000 cents)\n  - Net sales: $30.00 (3,000 cents)\n\nThe large segment had significantly higher net sales ($93.00) compared to the small segment ($30.00). This difference is due to both higher gross sales and lower refunds in the large segment. The small segment's net sales were reduced substantially by relatively high refunds, which accounted for more than half of their gross sales.",
+          "additional_kwargs": {
+            "refusal": null
+          },
+          "response_metadata": {
+            "token_usage": {
+              "completion_tokens": 179,
+              "prompt_tokens": 1005,
+              "total_tokens": 1184,
+              "completion_tokens_details": {
+                "accepted_prediction_tokens": 0,
+                "audio_tokens": 0,
+                "reasoning_tokens": 0,
+                "rejected_prediction_tokens": 0
+              },
+              "prompt_tokens_details": {
+                "audio_tokens": 0,
+                "cache_write_tokens": null,
+                "cached_tokens": 0
+              }
+            },
+            "model_provider": "openai",
+            "model_name": "gpt-4.1-mini-2025-04-14",
+            "system_fingerprint": "fp_a39d4f1b74",
+            "id": "chatcmpl-Ee3tag38yG41fb6cAAIaTk6nWkPDM",
+            "service_tier": "default",
+            "finish_reason": "stop",
+            "logprobs": null
+          },
+          "type": "ai",
+          "name": null,
+          "id": "lc_run--01a1840c-d70c-7518-8843-6a14099e77b9-0",
+          "tool_calls": [],
+          "invalid_tool_calls": [],
+          "usage_metadata": {
+            "input_tokens": 1005,
+            "output_tokens": 179,
+            "total_tokens": 1184,
+            "input_token_details": {
+              "audio": 0,
+              "cache_read": 0
+            },
+            "output_token_details": {
+              "audio": 0,
+              "reasoning": 0
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "in_progress": false,
+  "definitions": "\nYou are a business data investigator. Answer questions using\nSQL evidence from the database.\n\nBUSINESS RULES:\n- Gross sales: sum order amounts by order_date.\n- Refunds: sum refund amounts by refund_date.\n- Net sales = gross sales - refunds.\n- Amounts are integer USD cents.\n- Use UTC and half-open date ranges [start, end).\n- One order may have multiple refunds. Aggregate orders and\n  refunds separately to avoid duplicating gross sales.\n- Attribute refunds to the customer segment of the original order.\n- Refund reasons are not available in the database.\n\nINVESTIGATION:\n- Execute one SQL query at a time and use its result to\n  decide what to investigate next.\n- For net sales, always obtain evidence for both gross sales\n  and refunds, even if one of them is zero or has no records.\n  No orders in a period does not imply no refunds in that period.\n- For period comparisons, calculate relevant changes and\n  explain which components contributed to them.\n- Only investigate additional metrics when relevant to\n  the user's question.\n\nEVIDENCE:\n- Never invent or assume values not supported by SQL results.\n- Do not interpret missing rows as zero without justification.\n- If evidence is missing, query the database within the\n  available budget or state the limitation.\n- Answer the original question directly, using verified evidence.\n",
+  "configuration": {
+    "provider": "openai",
+    "model": "gpt-4.1-mini",
+    "query_limit": 6,
+    "row_limit": 100,
+    "query_seconds": 2
+  }
+}

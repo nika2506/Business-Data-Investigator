@@ -1,0 +1,317 @@
+{
+  "investigation_id": "7cdba6ce-db54-43d3-b138-1320e290ec1f",
+  "turns": [
+    {
+      "question": "Which refunds occurred in a different month from the original order?",
+      "mode": "model",
+      "answer": "There are four refunds that occurred in a different month from their original orders:\n\n1. Refunds RF4 and RF5 for order O5:\n   - Order date: August 31, 2026\n   - Refund dates: September 2 and 3, 2026\n   - Order amount: $40.00 (4000 cents)\n   - Refund amounts: $15.00 (1500 cents) and $5.00 (500 cents)\n   - Total refunds for this order in a different month: $20.00 (2000 cents)\n\n2. Refund RF7 for order O8:\n   - Order date: September 30, 2026\n   - Refund date: October 2, 2026\n   - Order amount: $30.00 (3000 cents)\n   - Refund amount: $10.00 (1000 cents)\n\n3. Refund RF8 for order O2:\n   - Order date: August 10, 2026\n   - Refund date: September 1, 2026\n   - Order amount: $50.00 (5000 cents)\n   - Refund amount: $7.00 (700 cents)\n\nThese refunds represent partial refunds that were processed in a month following the original order month. The total amount refunded in a different month for these orders is $37.00 (3700 cents).\n\nThis indicates that some refunds are delayed and attributed to a different month than the original sale, which can affect monthly net sales calculations by reducing net sales in the refund month rather than the order month.",
+      "model_answer_unverified": "There are four refunds that occurred in a different month from their original orders:\n\n1. Refunds RF4 and RF5 for order O5:\n   - Order date: August 31, 2026\n   - Refund dates: September 2 and 3, 2026\n   - Order amount: $40.00 (4000 cents)\n   - Refund amounts: $15.00 (1500 cents) and $5.00 (500 cents)\n   - Total refunds for this order in a different month: $20.00 (2000 cents)\n\n2. Refund RF7 for order O8:\n   - Order date: September 30, 2026\n   - Refund date: October 2, 2026\n   - Order amount: $30.00 (3000 cents)\n   - Refund amount: $10.00 (1000 cents)\n\n3. Refund RF8 for order O2:\n   - Order date: August 10, 2026\n   - Refund date: September 1, 2026\n   - Order amount: $50.00 (5000 cents)\n   - Refund amount: $7.00 (700 cents)\n\nThese refunds represent partial refunds that were processed in a month following the original order month. The total amount refunded in a different month for these orders is $37.00 (3700 cents).\n\nThis indicates that some refunds are delayed and attributed to a different month than the original sale, which can affect monthly net sales calculations by reducing net sales in the refund month rather than the order month.",
+      "attempts": [
+        {
+          "sql": "SELECT r.refund_id, r.order_id, r.refund_date, o.order_date\nFROM refunds r\nJOIN orders o ON r.order_id = o.order_id\nWHERE strftime('%Y-%m', r.refund_date) != strftime('%Y-%m', o.order_date);",
+          "result": {
+            "columns": [
+              "refund_id",
+              "order_id",
+              "refund_date",
+              "order_date"
+            ],
+            "rows": [
+              [
+                "RF4",
+                "O5",
+                "2026-09-02",
+                "2026-08-31"
+              ],
+              [
+                "RF5",
+                "O5",
+                "2026-09-03",
+                "2026-08-31"
+              ],
+              [
+                "RF7",
+                "O8",
+                "2026-10-02",
+                "2026-09-30"
+              ],
+              [
+                "RF8",
+                "O2",
+                "2026-09-01",
+                "2026-08-10"
+              ]
+            ],
+            "truncated": false,
+            "cells_truncated": false
+          }
+        },
+        {
+          "sql": "SELECT r.refund_id, r.order_id, r.amount_cents AS refund_amount_cents, o.amount_cents AS order_amount_cents\nFROM refunds r\nJOIN orders o ON r.order_id = o.order_id\nWHERE r.refund_id IN ('RF4', 'RF5', 'RF7', 'RF8');",
+          "result": {
+            "columns": [
+              "refund_id",
+              "order_id",
+              "refund_amount_cents",
+              "order_amount_cents"
+            ],
+            "rows": [
+              [
+                "RF4",
+                "O5",
+                1500,
+                4000
+              ],
+              [
+                "RF5",
+                "O5",
+                500,
+                4000
+              ],
+              [
+                "RF7",
+                "O8",
+                1000,
+                3000
+              ],
+              [
+                "RF8",
+                "O2",
+                700,
+                5000
+              ]
+            ],
+            "truncated": false,
+            "cells_truncated": false
+          }
+        }
+      ],
+      "error": null,
+      "model_responses": [
+        {
+          "content": "",
+          "additional_kwargs": {
+            "refusal": null
+          },
+          "response_metadata": {
+            "token_usage": {
+              "completion_tokens": 73,
+              "prompt_tokens": 391,
+              "total_tokens": 464,
+              "completion_tokens_details": {
+                "accepted_prediction_tokens": 0,
+                "audio_tokens": 0,
+                "reasoning_tokens": 0,
+                "rejected_prediction_tokens": 0
+              },
+              "prompt_tokens_details": {
+                "audio_tokens": 0,
+                "cache_write_tokens": null,
+                "cached_tokens": 0
+              }
+            },
+            "model_provider": "openai",
+            "model_name": "gpt-4.1-mini-2025-04-14",
+            "system_fingerprint": "fp_a39d4f1b74",
+            "id": "chatcmpl-Ee3udpeIiXxvplMVEHNQnDofz7XZU",
+            "service_tier": "default",
+            "finish_reason": "tool_calls",
+            "logprobs": null
+          },
+          "type": "ai",
+          "name": null,
+          "id": "lc_run--01a1840d-d113-7398-86f8-ab292ad25b31-0",
+          "tool_calls": [
+            {
+              "name": "query_database",
+              "args": {
+                "sql": "SELECT r.refund_id, r.order_id, r.refund_date, o.order_date\nFROM refunds r\nJOIN orders o ON r.order_id = o.order_id\nWHERE strftime('%Y-%m', r.refund_date) != strftime('%Y-%m', o.order_date);"
+              },
+              "id": "call_wIdjhfMohySRoWqjtaQ5BLA8",
+              "type": "tool_call"
+            }
+          ],
+          "invalid_tool_calls": [],
+          "usage_metadata": {
+            "input_tokens": 391,
+            "output_tokens": 73,
+            "total_tokens": 464,
+            "input_token_details": {
+              "audio": 0,
+              "cache_read": 0
+            },
+            "output_token_details": {
+              "audio": 0,
+              "reasoning": 0
+            }
+          }
+        },
+        {
+          "content": "The query result shows four refunds that occurred in a different month from their original orders. These refunds are:\n\n- Refunds RF4 and RF5 for order O5, where the order was in August 2026 and refunds in September 2026.\n- Refund RF7 for order O8, where the order was in September 2026 and refund in October 2026.\n- Refund RF8 for order O2, where the order was in August 2026 and refund in September 2026.\n\nA useful follow-up query would be to check the amounts of these refunds and their corresponding orders to understand the financial impact of refunds occurring in a different month. This will help quantify how much money was refunded after the month of the original order.\n\nI will query the amounts for these refunds and their orders.",
+          "additional_kwargs": {
+            "refusal": null
+          },
+          "response_metadata": {
+            "token_usage": {
+              "completion_tokens": 245,
+              "prompt_tokens": 624,
+              "total_tokens": 869,
+              "completion_tokens_details": {
+                "accepted_prediction_tokens": 0,
+                "audio_tokens": 0,
+                "reasoning_tokens": 0,
+                "rejected_prediction_tokens": 0
+              },
+              "prompt_tokens_details": {
+                "audio_tokens": 0,
+                "cache_write_tokens": null,
+                "cached_tokens": 0
+              }
+            },
+            "model_provider": "openai",
+            "model_name": "gpt-4.1-mini-2025-04-14",
+            "system_fingerprint": "fp_a39d4f1b74",
+            "id": "chatcmpl-Ee3ueKJVbWT3wQw1dbxyUM4lYAOt5",
+            "service_tier": "default",
+            "finish_reason": "tool_calls",
+            "logprobs": null
+          },
+          "type": "ai",
+          "name": null,
+          "id": "lc_run--01a1840d-d853-7279-bdc5-82134d91b8bc-0",
+          "tool_calls": [
+            {
+              "name": "query_database",
+              "args": {
+                "sql": "SELECT r.refund_id, r.order_id, r.amount_cents AS refund_amount_cents, o.amount_cents AS order_amount_cents\nFROM refunds r\nJOIN orders o ON r.order_id = o.order_id\nWHERE r.refund_id IN ('RF4', 'RF5', 'RF7', 'RF8');"
+              },
+              "id": "call_I4CtiOyvOFAgJNz0doKKYMQZ",
+              "type": "tool_call"
+            }
+          ],
+          "invalid_tool_calls": [],
+          "usage_metadata": {
+            "input_tokens": 624,
+            "output_tokens": 245,
+            "total_tokens": 869,
+            "input_token_details": {
+              "audio": 0,
+              "cache_read": 0
+            },
+            "output_token_details": {
+              "audio": 0,
+              "reasoning": 0
+            }
+          }
+        },
+        {
+          "content": "The refunds that occurred in a different month from the original order have the following amounts:\n\n- Refund RF4 for order O5: $15.00 refunded from a $40.00 order.\n- Refund RF5 for order O5: $5.00 refunded from the same $40.00 order.\n- Refund RF7 for order O8: $10.00 refunded from a $30.00 order.\n- Refund RF8 for order O2: $7.00 refunded from a $50.00 order.\n\nThese refunds represent partial refunds of their respective orders and occurred in a different month than the original order date. If you want, I can analyze the total impact of such cross-month refunds on net sales or investigate other aspects.",
+          "additional_kwargs": {
+            "refusal": null
+          },
+          "response_metadata": {
+            "token_usage": {
+              "completion_tokens": 151,
+              "prompt_tokens": 981,
+              "total_tokens": 1132,
+              "completion_tokens_details": {
+                "accepted_prediction_tokens": 0,
+                "audio_tokens": 0,
+                "reasoning_tokens": 0,
+                "rejected_prediction_tokens": 0
+              },
+              "prompt_tokens_details": {
+                "audio_tokens": 0,
+                "cache_write_tokens": null,
+                "cached_tokens": 0
+              }
+            },
+            "model_provider": "openai",
+            "model_name": "gpt-4.1-mini-2025-04-14",
+            "system_fingerprint": "fp_a39d4f1b74",
+            "id": "chatcmpl-Ee3uhtKMsmAtDvWb4itLqxFmpJlQz",
+            "service_tier": "default",
+            "finish_reason": "stop",
+            "logprobs": null
+          },
+          "type": "ai",
+          "name": null,
+          "id": "lc_run--01a1840d-e372-742e-8a40-c6666fa6cb45-0",
+          "tool_calls": [],
+          "invalid_tool_calls": [],
+          "usage_metadata": {
+            "input_tokens": 981,
+            "output_tokens": 151,
+            "total_tokens": 1132,
+            "input_token_details": {
+              "audio": 0,
+              "cache_read": 0
+            },
+            "output_token_details": {
+              "audio": 0,
+              "reasoning": 0
+            }
+          }
+        },
+        {
+          "content": "There are four refunds that occurred in a different month from their original orders:\n\n1. Refunds RF4 and RF5 for order O5:\n   - Order date: August 31, 2026\n   - Refund dates: September 2 and 3, 2026\n   - Order amount: $40.00 (4000 cents)\n   - Refund amounts: $15.00 (1500 cents) and $5.00 (500 cents)\n   - Total refunds for this order in a different month: $20.00 (2000 cents)\n\n2. Refund RF7 for order O8:\n   - Order date: September 30, 2026\n   - Refund date: October 2, 2026\n   - Order amount: $30.00 (3000 cents)\n   - Refund amount: $10.00 (1000 cents)\n\n3. Refund RF8 for order O2:\n   - Order date: August 10, 2026\n   - Refund date: September 1, 2026\n   - Order amount: $50.00 (5000 cents)\n   - Refund amount: $7.00 (700 cents)\n\nThese refunds represent partial refunds that were processed in a month following the original order month. The total amount refunded in a different month for these orders is $37.00 (3700 cents).\n\nThis indicates that some refunds are delayed and attributed to a different month than the original sale, which can affect monthly net sales calculations by reducing net sales in the refund month rather than the order month.",
+          "additional_kwargs": {
+            "refusal": null
+          },
+          "response_metadata": {
+            "token_usage": {
+              "completion_tokens": 320,
+              "prompt_tokens": 1211,
+              "total_tokens": 1531,
+              "completion_tokens_details": {
+                "accepted_prediction_tokens": 0,
+                "audio_tokens": 0,
+                "reasoning_tokens": 0,
+                "rejected_prediction_tokens": 0
+              },
+              "prompt_tokens_details": {
+                "audio_tokens": 0,
+                "cache_write_tokens": null,
+                "cached_tokens": 0
+              }
+            },
+            "model_provider": "openai",
+            "model_name": "gpt-4.1-mini-2025-04-14",
+            "system_fingerprint": "fp_a39d4f1b74",
+            "id": "chatcmpl-Ee3uis254mXUh545Q3aQnwBFERSEO",
+            "service_tier": "default",
+            "finish_reason": "stop",
+            "logprobs": null
+          },
+          "type": "ai",
+          "name": null,
+          "id": "lc_run--01a1840d-e94b-7511-a55d-46fa57565622-0",
+          "tool_calls": [],
+          "invalid_tool_calls": [],
+          "usage_metadata": {
+            "input_tokens": 1211,
+            "output_tokens": 320,
+            "total_tokens": 1531,
+            "input_token_details": {
+              "audio": 0,
+              "cache_read": 0
+            },
+            "output_token_details": {
+              "audio": 0,
+              "reasoning": 0
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "in_progress": false,
+  "definitions": "\nYou are a business data investigator. Answer questions using\nSQL evidence from the database.\n\nBUSINESS RULES:\n- Gross sales: sum order amounts by order_date.\n- Refunds: sum refund amounts by refund_date.\n- Net sales = gross sales - refunds.\n- Amounts are integer USD cents.\n- Use UTC and half-open date ranges [start, end).\n- One order may have multiple refunds. Aggregate orders and\n  refunds separately to avoid duplicating gross sales.\n- Attribute refunds to the customer segment of the original order.\n- Refund reasons are not available in the database.\n\nINVESTIGATION:\n- Execute one SQL query at a time and use its result to\n  decide what to investigate next.\n- For net sales, always obtain evidence for both gross sales\n  and refunds, even if one of them is zero or has no records.\n  No orders in a period does not imply no refunds in that period.\n- For period comparisons, calculate relevant changes and\n  explain which components contributed to them.\n- Only investigate additional metrics when relevant to\n  the user's question.\n\nEVIDENCE:\n- Never invent or assume values not supported by SQL results.\n- Do not interpret missing rows as zero without justification.\n- If evidence is missing, query the database within the\n  available budget or state the limitation.\n- Answer the original question directly, using verified evidence.\n",
+  "configuration": {
+    "provider": "openai",
+    "model": "gpt-4.1-mini",
+    "query_limit": 6,
+    "row_limit": 100,
+    "query_seconds": 2
+  }
+}
