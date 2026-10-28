@@ -4,6 +4,7 @@ import sqlite3
 import threading
 import time
 import uuid
+from datetime import date
 from urllib.request import Request, urlopen
 from contextlib import closing
 from pathlib import Path
@@ -13,7 +14,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import Response, FileResponse
 from pydantic import BaseModel, Field
 
-from langchain_ollama import ChatOllama
+from langchain_openai import ChatOpenAI
 from langchain_core.messages import (
     SystemMessage,
     HumanMessage,
@@ -88,31 +89,90 @@ IMPORTANT INVESTIGATION RULES:
 """
 
 SQL_EXAMPLES = """
-EXAMPLE 1: Gross sales for a period
+EXAMPLE INVESTIGATION
 
-SELECT SUM(amount_cents) AS gross_cents
-FROM orders
-WHERE order_date >= '2026-08-01'
-  AND order_date < '2026-09-01';
+User question:
+Compare net sales in August 2026 with September 2026.
 
-EXAMPLE 2: Refunds for a period
+Step 1: Calculate August net sales.
 
-SELECT SUM(amount_cents) AS refund_cents
-FROM refunds
-WHERE refund_date >= '2026-08-01'
-  AND refund_date < '2026-09-01';
+Call tool: calculate_net_sales
+Arguments:
+{
+    "start_date": "2026-08-01",
+    "end_date": "2026-09-01"
+}
 
-EXAMPLE 3: Refunds by customer segment
+Example tool result:
+{
+    "gross_cents": 10000,
+    "refund_cents": 1000,
+    "net_cents": 9000
+}
 
-SELECT
-    c.segment,
-    SUM(r.amount_cents) AS refund_cents
-FROM refunds r
-JOIN orders o ON r.order_id = o.order_id
-JOIN customers c ON o.customer_id = c.customer_id
-WHERE r.refund_date >= '2026-08-01'
-  AND r.refund_date < '2026-09-01'
-GROUP BY c.segment;
+Step 2: Calculate September net sales.
+
+Call tool: calculate_net_sales
+Arguments:
+{
+    "start_date": "2026-09-01",
+    "end_date": "2026-10-01"
+}
+
+Example tool result:
+{
+    "gross_cents": 10000,
+    "refund_cents": 3000,
+    "net_cents": 7000
+}
+
+Step 3: Analyze the results.
+
+Gross sales remained unchanged.
+Refunds increased from 1000 to 3000 cents.
+Net sales decreased from 9000 to 7000 cents.
+
+Step 4: Investigate the reason for increased refunds.
+
+Call tool: query_database
+Arguments:
+{
+    "sql": "SELECT c.segment, SUM(r.amount_cents) AS refund_cents FROM refunds r JOIN orders o ON r.order_id = o.order_id JOIN customers c ON o.customer_id = c.customer_id WHERE r.refund_date >= '2026-09-01' AND r.refund_date < '2026-10-01' GROUP BY c.segment"
+}
+
+Step 5: Produce the final answer.
+
+Explain the difference in net sales using actual tool results.
+Include the follow-up findings only after the query has been executed.
+
+IMPORTANT:
+- Example tool results are illustrative. Always call the tools
+  and use their actual returned values.
+- calculate_net_sales is a TOOL, not a SQLite table.
+- Never write SQL containing FROM calculate_net_sales.
+- Do not write tool calls as plain text in the final answer.
+- Execute tool calls through the provided tool interface.
+- Do not invent the result of a follow-up SQL query.
+"""
+
+FINAL_ANSWER_INSTRUCTION = """
+You have finished executing SQL queries.
+
+Now provide the FINAL answer to the user's question
+using only the SQL results already available in the conversation.
+
+For net sales comparisons:
+- Net sales = gross sales - refunds.
+- Calculate net sales for each period.
+- Calculate the absolute and percentage change.
+- Explain whether the change was caused by gross sales,
+  refunds, or both.
+
+Do not request more SQL queries.
+Do not describe what you plan to calculate.
+Actually perform the calculations and present the results.
+
+Your answer must be complete and self-contained.
 """
 
 def get_database_schema():
@@ -143,7 +203,7 @@ class InvestigationRequest(BaseModel):
     mode: Literal["model", "offline"] = "model"
 
 
-def query(sql: str) -> dict:
+def query(sql: str, params: tuple | list = ()) -> dict:
     """Execute one bounded, read-only SQLite statement and return JSON-safe evidence."""
     if not isinstance(sql, str) or not sql.strip() or len(sql) > 12000:
         return {"error": "SQL must be a nonempty string of at most 12000 characters."}
@@ -166,7 +226,7 @@ def query(sql: str) -> dict:
 
             conn.set_authorizer(authorizer)
             conn.set_progress_handler(lambda: int(time.monotonic() - started > QUERY_SECONDS), 1000)
-            cursor = conn.execute(sql)
+            cursor = conn.execute(sql, params)
             if cursor.description is None:
                 raise ValueError("Only queries returning rows are allowed")
             columns = [item[0] for item in cursor.description]
@@ -221,11 +281,50 @@ def query_database(sql: str) -> dict:
     """Execute a read-only SQL query against the business database."""
     return query(sql)
 
+@tool
+def calculate_net_sales(start_date: str, end_date: str) -> dict:
+    """
+    Calculate gross sales, refunds and net sales for a date range.
+
+    Dates use the format YYYY-MM-DD.
+    The start date is inclusive and the end date is exclusive.
+    Gross sales use order_date; refunds use refund_date.
+    """
+    start = date.fromisoformat(start_date)
+    end = date.fromisoformat(end_date)
+
+    if start >= end:
+        raise ValueError("start_date must be before end_date")
+
+    gross_result = query("""
+        SELECT COALESCE(SUM(amount_cents), 0) AS gross_cents
+        FROM orders
+        WHERE order_date >= ?
+          AND order_date < ?
+    """, (start_date, end_date))
+
+    refund_result = query("""
+        SELECT COALESCE(SUM(amount_cents), 0) AS refund_cents
+        FROM refunds
+        WHERE refund_date >= ?
+          AND refund_date < ?
+    """, (start_date, end_date))
+
+    gross = gross_result["rows"][0][0]
+    refunds = refund_result["rows"][0][0]
+
+    return {
+        "start_date": start_date,
+        "end_date": end_date,
+        "gross_cents": gross,
+        "refund_cents": refunds,
+        "net_cents": gross - refunds,
+    }
+
 
 def model_attempt(question: str, previous: list, attempts: list, responses: list):
-    llm = ChatOllama(
-        model=os.getenv("OLLAMA_MODEL", "llama3.2:3b"),
-        base_url=os.getenv("OLLAMA_HOST", "http://127.0.0.1:11434"),
+    llm = ChatOpenAI(
+        model=os.getenv("OPENAI_MODEL", "gpt-4.1-mini"),
         temperature=0,
     )
 
@@ -275,7 +374,23 @@ def model_attempt(question: str, previous: list, attempts: list, responses: list
                 ))
                 continue
 
-            return response.content or "No answer returned."
+            messages.append(HumanMessage(
+                content=(
+                    "Now provide the FINAL answer to the original question "
+                    "using the SQL results already available. "
+                    "If comparing net sales, calculate net sales as gross sales "
+                    "minus refunds for each period, then calculate the absolute "
+                    "and percentage change. Explain what caused the change. "
+                    "Do not describe what you plan to calculate. "
+                    "Perform the calculations and give the final answer. "
+                    "Do not request any more SQL queries."
+                )
+            ))
+
+            final_response = llm.invoke(messages)
+            responses.append(final_response.model_dump(mode="json"))
+
+            return final_response.content or "No answer returned."
 
         if len(tool_calls) != 1:
             messages.append(HumanMessage(
@@ -376,5 +491,5 @@ def get_investigation(investigation_id: str):
 def export_investigation(investigation_id: str):
     data = get_investigation(investigation_id)
     data["definitions"] = SYSTEM
-    data["configuration"] = {"provider": "ollama", "model": os.getenv("OLLAMA_MODEL", "llama3.2:3b"), "query_limit": MAX_TOOL_CALLS, "row_limit": MAX_ROWS, "query_seconds": QUERY_SECONDS}
+    data["configuration"] = {"provider": "openai", "model": os.getenv("OPENAI_MODEL", "gpt-4.1-mini"), "query_limit": MAX_TOOL_CALLS, "row_limit": MAX_ROWS, "query_seconds": QUERY_SECONDS}
     return Response(content=json.dumps(data, indent=2, ensure_ascii=False), media_type="application/json", headers={"Content-Disposition": f'attachment; filename="investigation-{investigation_id}.json"'})
