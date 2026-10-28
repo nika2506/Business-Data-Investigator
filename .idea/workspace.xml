@@ -5,17 +5,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="24f7f993-bba5-45f0-b71a-1caba88a97c2" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/app/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/agent.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/config.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/database.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/history.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/main.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/prompts.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/schemas.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/static/index.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tasks/data/additional-records.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tasks/data/expand_database.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tasks/data/expanded-fixtures.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tasks/data/expected-expanded-results.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/config.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/prompts.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/prompts.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -47,7 +43,7 @@
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.git.unshallow": "true",
     "git-widget-placeholder": "master",
-    "last_opened_file_path": "C:/Users/Veronika/PycharmProjects/Data_test_task/app",
+    "last_opened_file_path": "C:/Users/Veronika/PycharmProjects/Data_test_task/tasks/data",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -58,6 +54,7 @@
 }]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\Veronika\PycharmProjects\Data_test_task\tasks\data" />
       <recent name="C:\Users\Veronika\PycharmProjects\Data_test_task\app" />
       <recent name="C:\Users\Veronika\PycharmProjects\Data_test_task" />
     </key>
@@ -81,7 +78,7 @@
       <option name="presentableId" value="Default" />
       <updated>1793118657658</updated>
       <workItem from="1793118658718" duration="17433000" />
-      <workItem from="1793179829938" duration="6900000" />
+      <workItem from="1793179829938" duration="9044000" />
     </task>
     <servers />
   </component>

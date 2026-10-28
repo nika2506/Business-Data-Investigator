@@ -1,0 +1,194 @@
+{
+  "scope": "expanded fixed snapshot: seed.json + additional-records.json",
+  "rules": {
+    "R1": "IDs link refunds to orders and orders to customers; one order can have multiple refunds.",
+    "R2": "Gross by order_date; refunds by refund_date; net = gross - refunds; UTC half-open periods.",
+    "R3": "Amounts in integer USD cents; aggregate order and refund amounts separately before combining.",
+    "R4": "Refunds attributed to segment of customer on original order; reasons for refunds are not recorded.",
+    "R5": "Total refunds for each order must not exceed that order amount."
+  },
+  "cases": [
+    {
+      "case_id": "case_01_month_comparison",
+      "question": "Compare net sales in August 2026 with September 2026",
+      "input": {
+        "periods": [
+          "2026-08",
+          "2026-09"
+        ]
+      },
+      "rule_ids": [
+        "R2",
+        "R3"
+      ],
+      "expected": {
+        "august": {
+          "start": "2026-08-01",
+          "end_exclusive": "2026-09-01",
+          "gross_cents": 16000,
+          "refunds_cents": 1000,
+          "net_cents": 15000
+        },
+        "september": {
+          "start": "2026-09-01",
+          "end_exclusive": "2026-10-01",
+          "gross_cents": 19000,
+          "refunds_cents": 6700,
+          "net_cents": 12300
+        },
+        "net_change_cents": -2700,
+        "net_change_percent": -18.0,
+        "gross_change_cents": 3000,
+        "refund_change_cents": 5700
+      }
+    },
+    {
+      "case_id": "case_02_september_segments",
+      "question": "Compare September 2026 net sales by customer segment",
+      "input": {
+        "start": "2026-09-01",
+        "end_exclusive": "2026-10-01"
+      },
+      "rule_ids": [
+        "R1",
+        "R2",
+        "R3",
+        "R4"
+      ],
+      "expected": {
+        "segments": {
+          "small": {
+            "start": "2026-09-01",
+            "end_exclusive": "2026-10-01",
+            "gross_cents": 8000,
+            "refunds_cents": 5000,
+            "net_cents": 3000
+          },
+          "large": {
+            "start": "2026-09-01",
+            "end_exclusive": "2026-10-01",
+            "gross_cents": 11000,
+            "refunds_cents": 1700,
+            "net_cents": 9300
+          }
+        },
+        "highest_net_segment": "large"
+      }
+    },
+    {
+      "case_id": "case_03_multiple_refunds",
+      "question": "Which orders have multiple refunds and how much was refunded for each?",
+      "input": {
+        "all_refunds": true
+      },
+      "rule_ids": [
+        "R1",
+        "R5"
+      ],
+      "expected": {
+        "orders": [
+          {
+            "order_id": "O3",
+            "refund_count": 2,
+            "total_refund_cents": 3000,
+            "order_amount_cents": 5000
+          },
+          {
+            "order_id": "O5",
+            "refund_count": 2,
+            "total_refund_cents": 2000,
+            "order_amount_cents": 4000
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "case_04_cross_month_refunds",
+      "question": "Which refunds occurred in a different month from the original order?",
+      "input": {
+        "all_refunds": true
+      },
+      "rule_ids": [
+        "R1",
+        "R2",
+        "R4"
+      ],
+      "expected": {
+        "refunds": [
+          {
+            "refund_id": "RF4",
+            "order_id": "O5",
+            "order_date": "2026-08-31",
+            "refund_date": "2026-09-02",
+            "amount_cents": 1500
+          },
+          {
+            "refund_id": "RF5",
+            "order_id": "O5",
+            "order_date": "2026-08-31",
+            "refund_date": "2026-09-03",
+            "amount_cents": 500
+          },
+          {
+            "refund_id": "RF7",
+            "order_id": "O8",
+            "order_date": "2026-09-30",
+            "refund_date": "2026-10-02",
+            "amount_cents": 1000
+          },
+          {
+            "refund_id": "RF8",
+            "order_id": "O2",
+            "order_date": "2026-08-10",
+            "refund_date": "2026-09-01",
+            "amount_cents": 700
+          }
+        ],
+        "count": 4
+      }
+    },
+    {
+      "case_id": "case_05_october_and_empty_period",
+      "question": "What were net sales in October and November 2026?",
+      "input": {
+        "periods": [
+          "2026-10",
+          "2026-11"
+        ]
+      },
+      "rule_ids": [
+        "R2",
+        "R3"
+      ],
+      "expected": {
+        "october": {
+          "start": "2026-10-01",
+          "end_exclusive": "2026-11-01",
+          "gross_cents": 2500,
+          "refunds_cents": 1500,
+          "net_cents": 1000
+        },
+        "november": {
+          "start": "2026-11-01",
+          "end_exclusive": "2026-12-01",
+          "gross_cents": 0,
+          "refunds_cents": 0,
+          "net_cents": 0
+        }
+      }
+    }
+  ],
+  "validation": {
+    "customer_count": 4,
+    "order_count": 9,
+    "refund_count": 9,
+    "invalid_relationships": 0,
+    "orders_exceeding_refund_cap": 0,
+    "deliberate_invalid_cases": 0
+  },
+  "generation": {
+    "method": "Manually specified deterministic additions; no random generation used. Original seed records retained verbatim.",
+    "random_seed": null,
+    "original_seed_expected_results": "expected-seed-results.json (unchanged; applies to original seed only)"
+  }
+}

@@ -3,7 +3,7 @@ import os
 
 # DB config
 BASE_DIR = Path(__file__).resolve().parent.parent
-DB_PATH = Path(os.getenv("INVESTIGATION_DB", BASE_DIR / "tasks" / "data" / "seed.sqlite")).resolve()
+DB_PATH = Path(os.getenv("INVESTIGATION_DB", BASE_DIR / "tasks" / "data" / "expanded.sqlite")).resolve()
 MAX_ROWS = 100
 QUERY_SECONDS = 2
 MAX_CELL_CHARS = 2000
